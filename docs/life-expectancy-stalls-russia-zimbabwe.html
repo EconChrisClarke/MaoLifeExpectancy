@@ -2198,6 +2198,12 @@ function draw(ctx, W, H, P, opts){
     const picks = [];
     for(let i=0;i<uniq.length;i+=step) picks.push(uniq[i]);
     if(picks[picks.length-1] !== uniq[uniq.length-1]) picks.push(uniq[uniq.length-1]);
+    /* The final x is always labelled, so the tick before it can land too close
+       (2020 next to 2023). Drop earlier ticks until the labels no longer touch;
+       the first label is never dropped. */
+    const minGap = ctx.measureText(xlabel(picks[picks.length-1], xSpan)).width * 2.2;
+    while(picks.length > 2 && Xn(picks[picks.length-1]) - Xn(picks[picks.length-2]) < minGap)
+      picks.splice(picks.length-2, 1);
     picks.forEach((v,i)=>{
       const px = Xn(v);
       ctx.textAlign = i===0 ? 'left' : (i===picks.length-1 ? 'right' : 'center');
