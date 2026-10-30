@@ -1,0 +1,2580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Over Mao's era, Niger and Rwanda gained barely a year or two of life expectancy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@144,700&family=Inter:wght@400;500;600;700&family=Jost:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#111827; --muted:#6B7280; --grid:#E4D8DB; --red:#C71E1D; --bg:#FFF1F2; }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+  #stage{margin:0 auto;padding:8px;text-align:center}
+  /* The canvas is a real export frame — 1456x900, 1080x1920 or 1080x1080 —
+     scaled to fit the viewport. What is on screen is the PNG, at every size. */
+  canvas{display:inline-block;max-width:100%;height:auto;touch-action:pan-y;
+    box-shadow:0 1px 3px rgba(17,24,39,.10)}
+  /* Controls sit in a single column whose width is set to the rendered canvas,
+     so nothing is centred independently. Labels share a fixed first column and
+     Download is pushed to the right edge — everything is flush left or flush
+     right, nothing floats in between. */
+  #controls{margin:14px auto 30px;padding:0 8px;box-sizing:border-box;text-align:left}
+  .ctlrow{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:8px}
+  .ctlrow:empty{display:none;margin:0}
+  #bar{margin-bottom:0}
+  .ctllab{flex:0 0 84px;font:500 11.5px/1.4 'Inter',sans-serif;color:#9CA3AF;
+    letter-spacing:.06em;text-transform:uppercase}
+  .ctllab.inline{flex:0 0 auto;margin-left:16px}
+  .ctlrow button,.ctlrow select{font:600 12.5px/1 'Inter',system-ui,sans-serif;
+    color:#374151;background:transparent;border:1px solid #D9C7CB;border-radius:7px;
+    padding:8px 11px;cursor:pointer}
+  .ctlrow select{padding:7px 8px}
+  .ctlrow button:hover{border-color:var(--red);color:var(--red)}
+  #bar button.on{border-color:var(--red);color:#fff;background:var(--red)}
+  #bar button.dl{margin-left:auto;border-color:#B9A6AA;font-weight:700}
+  #bar button.dl:hover{background:var(--red);border-color:var(--red);color:#fff}
+  .ctlwarn{flex:1 0 100%;font:500 11.5px/1.4 'Inter',sans-serif;color:var(--red);
+    margin-left:84px}
+  #copytext{margin-top:14px;font:400 12px/1.55 'Inter',sans-serif;color:#767C86}
+  #copytext p{margin:0 0 4px}
+  #copytext .ct-head{color:#111827;font-weight:600}
+  #copytext a{color:#767C86}
+  .ctlrow label.sercb{display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    font:600 12.5px/1 'Inter',system-ui,sans-serif;color:#374151;
+    border:1px solid #D9C7CB;border-radius:7px;padding:7px 10px}
+  .ctlrow label.sercb:hover{border-color:var(--red)}
+  .ctlrow label.sercb input{margin:0;accent-color:var(--sw,#374151);cursor:pointer}
+  .ctlrow label.sercb.off{color:#9CA3AF}
+  .ctlcheck{display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    font:600 12.5px/1 'Inter',system-ui,sans-serif;color:#374151;
+    border:1px solid #D9C7CB;border-radius:7px;padding:7px 10px;margin-left:16px}
+  .ctlcheck:hover{border-color:var(--red);color:var(--red)}
+  .ctlcheck input{accent-color:var(--red);margin:0;cursor:pointer}
+  body.embed #controls{display:none}
+  table.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div id="stage"><canvas id="cv"></canvas></div>
+
+<!-- One control column, width-matched to the canvas in render(), so every
+     label starts on the chart's left edge and Download ends on its right. -->
+<div id="controls">
+  <div class="ctlrow" id="zoom"></div>
+  <div class="ctlrow" id="axes"></div>
+  <div class="ctlrow" id="serrow"></div>
+  <div class="ctlrow" id="copyrow">
+    <span class="ctllab">Copy</span>
+    <button id="cptext">Chart text</button>
+    <button id="cpdata">Data table</button>
+    <span class="ctlwarn" id="cpsaid"></span>
+  </div>
+  <div class="ctlrow" id="bar">
+    <span class="ctllab">View</span>
+    <button data-m="substack">Substack 1456</button>
+    <button data-m="vertical">Vertical 9:16</button>
+    <button data-m="square">Square 1:1</button>
+    <button id="dl" class="dl">Download PNG</button>
+  </div>
+  <div id="copytext"></div>
+</div>
+
+<table class="sr" id="srtable"></table>
+
+<script>
+/* ============================================================================
+   CHART CONFIG — the only block you normally edit.
+   ========================================================================= */
+/* CHART_CONFIG_START */
+const CHART = {
+  "type": "line",
+  "headline": "Over Mao's era, Niger and Rwanda gained barely a year or two of life expectancy",
+  "subhead": "Life expectancy at birth, years, 1950–1976",
+  "source": "UN DESA Population Division, World Population Prospects 2024, Demographic Indicators file (medium variant), column LEx",
+  "sourceUrl": "https://population.un.org/wpp/downloads?folder=Standard%20Projections&group=CSV%20format",
+  "note": "Change 1950–76: China +17.4, India +10.1, Rwanda +2.1, Niger +1.2 years. Burundi (+2.8) and Somalia (+3.3) were similar. UN figures for these countries in the 1950s and 1960s rest on few surveys and are model-based.",
+  "xType": "year",
+  "format": {
+    "decimals": 0
+  },
+  "series": [
+    {
+      "name": "China",
+      "color": "#C71E1D",
+      "data": [
+        [
+          1950,
+          43.83
+        ],
+        [
+          1951,
+          44.56
+        ],
+        [
+          1952,
+          45.34
+        ],
+        [
+          1953,
+          45.91
+        ],
+        [
+          1954,
+          46.76
+        ],
+        [
+          1955,
+          47.24
+        ],
+        [
+          1956,
+          47.81
+        ],
+        [
+          1957,
+          48.38
+        ],
+        [
+          1958,
+          48.83
+        ],
+        [
+          1959,
+          40.17
+        ],
+        [
+          1960,
+          33.42
+        ],
+        [
+          1961,
+          40.16
+        ],
+        [
+          1962,
+          50.96
+        ],
+        [
+          1963,
+          51.67
+        ],
+        [
+          1964,
+          52.34
+        ],
+        [
+          1965,
+          53.0
+        ],
+        [
+          1966,
+          53.66
+        ],
+        [
+          1967,
+          54.4
+        ],
+        [
+          1968,
+          55.19
+        ],
+        [
+          1969,
+          55.99
+        ],
+        [
+          1970,
+          56.82
+        ],
+        [
+          1971,
+          57.73
+        ],
+        [
+          1972,
+          58.58
+        ],
+        [
+          1973,
+          59.5
+        ],
+        [
+          1974,
+          60.24
+        ],
+        [
+          1975,
+          60.95
+        ],
+        [
+          1976,
+          61.23
+        ]
+      ]
+    },
+    {
+      "name": "India",
+      "color": "#1B3A5C",
+      "data": [
+        [
+          1950,
+          41.18
+        ],
+        [
+          1951,
+          41.6
+        ],
+        [
+          1952,
+          42.09
+        ],
+        [
+          1953,
+          42.39
+        ],
+        [
+          1954,
+          43.25
+        ],
+        [
+          1955,
+          43.74
+        ],
+        [
+          1956,
+          44.13
+        ],
+        [
+          1957,
+          44.41
+        ],
+        [
+          1958,
+          44.78
+        ],
+        [
+          1959,
+          45.26
+        ],
+        [
+          1960,
+          45.61
+        ],
+        [
+          1961,
+          45.82
+        ],
+        [
+          1962,
+          46.13
+        ],
+        [
+          1963,
+          46.46
+        ],
+        [
+          1964,
+          46.74
+        ],
+        [
+          1965,
+          45.56
+        ],
+        [
+          1966,
+          45.88
+        ],
+        [
+          1967,
+          46.18
+        ],
+        [
+          1968,
+          47.92
+        ],
+        [
+          1969,
+          48.26
+        ],
+        [
+          1970,
+          48.59
+        ],
+        [
+          1971,
+          48.9
+        ],
+        [
+          1972,
+          49.21
+        ],
+        [
+          1973,
+          49.64
+        ],
+        [
+          1974,
+          50.26
+        ],
+        [
+          1975,
+          50.76
+        ],
+        [
+          1976,
+          51.3
+        ]
+      ]
+    },
+    {
+      "name": "Rwanda",
+      "color": "#2E8B7A",
+      "data": [
+        [
+          1950,
+          43.18
+        ],
+        [
+          1951,
+          43.47
+        ],
+        [
+          1952,
+          43.77
+        ],
+        [
+          1953,
+          44.09
+        ],
+        [
+          1954,
+          44.43
+        ],
+        [
+          1955,
+          44.79
+        ],
+        [
+          1956,
+          45.18
+        ],
+        [
+          1957,
+          45.61
+        ],
+        [
+          1958,
+          46.05
+        ],
+        [
+          1959,
+          46.55
+        ],
+        [
+          1960,
+          47.02
+        ],
+        [
+          1961,
+          47.46
+        ],
+        [
+          1962,
+          47.8
+        ],
+        [
+          1963,
+          44.0
+        ],
+        [
+          1964,
+          48.13
+        ],
+        [
+          1965,
+          48.2
+        ],
+        [
+          1966,
+          48.08
+        ],
+        [
+          1967,
+          47.99
+        ],
+        [
+          1968,
+          47.73
+        ],
+        [
+          1969,
+          47.44
+        ],
+        [
+          1970,
+          47.12
+        ],
+        [
+          1971,
+          46.76
+        ],
+        [
+          1972,
+          46.34
+        ],
+        [
+          1973,
+          45.94
+        ],
+        [
+          1974,
+          45.57
+        ],
+        [
+          1975,
+          45.32
+        ],
+        [
+          1976,
+          45.31
+        ]
+      ]
+    },
+    {
+      "name": "Niger",
+      "color": "#E8A33D",
+      "data": [
+        [
+          1950,
+          35.9
+        ],
+        [
+          1951,
+          35.9
+        ],
+        [
+          1952,
+          35.91
+        ],
+        [
+          1953,
+          35.93
+        ],
+        [
+          1954,
+          35.95
+        ],
+        [
+          1955,
+          35.97
+        ],
+        [
+          1956,
+          36.04
+        ],
+        [
+          1957,
+          36.08
+        ],
+        [
+          1958,
+          36.09
+        ],
+        [
+          1959,
+          36.14
+        ],
+        [
+          1960,
+          36.19
+        ],
+        [
+          1961,
+          36.29
+        ],
+        [
+          1962,
+          36.32
+        ],
+        [
+          1963,
+          36.44
+        ],
+        [
+          1964,
+          36.46
+        ],
+        [
+          1965,
+          36.4
+        ],
+        [
+          1966,
+          36.33
+        ],
+        [
+          1967,
+          36.24
+        ],
+        [
+          1968,
+          36.13
+        ],
+        [
+          1969,
+          36.0
+        ],
+        [
+          1970,
+          35.92
+        ],
+        [
+          1971,
+          35.29
+        ],
+        [
+          1972,
+          35.81
+        ],
+        [
+          1973,
+          35.94
+        ],
+        [
+          1974,
+          36.19
+        ],
+        [
+          1975,
+          36.57
+        ],
+        [
+          1976,
+          37.1
+        ]
+      ]
+    }
+  ],
+  "annotations": [
+    {
+      "x": 1960,
+      "y": 33.42,
+      "text": "Great Leap famine: 33.4 in 1960",
+      "dx": 24,
+      "dy": 10,
+      "series": "China"
+    }
+  ]
+};
+/* CHART_CONFIG_END */
+
+/* ============================================================================
+   THEME — the house style. Edit here, never per chart.
+   ========================================================================= */
+const T = {
+  /* The canvas is the EconChrisClarke rose, not white. Gridlines, the zero
+     rule and the shaded bands are all derived from it, because a neutral grey
+     grid on a warm background reads as dirty rather than as quiet. */
+  bg:'#FFF1F2', ink:'#111827', muted:'#6B7280', faint:'#767C86',
+  grid:'#E4D8DB', zero:'#C6BDC1', band:'#F2E5E7', red:'#C71E1D',
+  palette:['#C71E1D','#1B3A5C','#E8A33D','#2E8B7A','#7C4A8D','#6B7280'],
+  fTitle:"'Fraunces',Georgia,'Times New Roman',serif",
+  headWeight:700,
+  fBody:"'Inter',system-ui,-apple-system,sans-serif",
+  fLogo:"'Jost',system-ui,-apple-system,sans-serif",
+  szHead:25, szSub:14.5, szAxis:13, szLabel:13.5, szFoot:11.5, szAnno:12.5,
+  lineW:3.2, dotR:4.6, pad:26, gap:9
+};
+
+/* Output presets. `s` scales all type and spacing together. `safe` keeps
+   content clear of platform UI (TikTok caption block, right button rail). */
+/* `fs` scales the footer independently of `s`. On the 9:16 export the safe area
+   already gives up 600 of 1920px to platform UI, and a footnote set at the same
+   2.1x as everything else can eat another fifth of what is left — so the plot
+   ends up a strip in the middle. The note still has to be legible on a phone,
+   but it does not have to be as large as the axis labels.
+   `pl` turns point labels on or off per output. */
+/* `hs` scales the headline block, `fs` the footer — both independently of `s`.
+   On 9:16 the frame is tall but the safe area takes 570 of 1920px, and at a
+   uniform 2.1x the headline alone claimed 484px of the 1350 that remained. The
+   plot was left as a strip. Type still has to be legible at arm's length, so
+   these are trims rather than collapses.
+   `pl` turns point labels on or off per output. */
+/* Three outputs, not five. Portrait 4:5 and Wide 16:9 were dropped: 4:5 sat
+   between Substack and Square without doing anything either could not, and 16:9
+   is a slide format this chart style is not for. Fewer buttons is also fewer
+   decisions at the moment of publishing. */
+const PRESETS = {
+  substack: { w:1456, h:900,  s:1.55, ex:2, hs:1.00, fs:1.00, pl:true,  safe:{t:0,b:0,l:0,r:0} },
+  vertical: { w:1080, h:1920, s:2.00, ex:1, hs:0.78, fs:0.58, pl:false, safe:{t:150,b:380,l:30,r:110} },
+  square:   { w:1080, h:1080, s:1.65, ex:1, hs:0.94, fs:0.85, pl:true,  safe:{t:16,b:16,l:16,r:16} }
+};
+/* Every PRESET sets these, but a hand-built P (tests, embeds) may not, so
+   every reader defaults rather than assuming. */
+function fscale(P){ return (P && P.fs) ? P.fs : 1; }
+function hscale(P){ return (P && P.hs) ? P.hs : 1; }
+function showPointLabels(P){ return !P || P.pl !== false; }
+
+/* Footer TEXT — the note and the source — is drawn into the canvas for every
+   EXPORT, because a PNG travels without the page around it and those lines are
+   what keep it honest and citable.
+
+   On the web view the canvas draws neither. Both are rendered below the chart
+   as selectable DOM text instead, so each appears exactly once on screen and
+   can be copied. The logo still draws, so the canvas is never unattributed. */
+/* The screen and the export are now the same frame, so the canvas always
+   carries the note and source. The block below the chart repeats them as
+   selectable DOM text purely so they can be copied — a canvas cannot be
+   drag-selected, and these are the lines most often pasted into a post. */
+function showFooterText(P){ return true; }
+
+/* ==========================================================================
+   Helpers
+   ======================================================================= */
+const F = CHART.format || {};
+function fmt(v){
+  if(v===null||v===undefined||isNaN(v)) return '';
+  const d = (F.decimals===undefined||F.decimals===null) ? 0 : F.decimals;
+  if(F.compact){
+    const a = Math.abs(v); let n=v, suf='';
+    if(a>=1e12){ n=v/1e12; suf='T'; } else if(a>=1e9){ n=v/1e9; suf='B'; }
+    else if(a>=1e6){ n=v/1e6; suf='M'; } else if(a>=1e3){ n=v/1e3; suf='K'; }
+    if(suf) return (F.prefix||'') + (Math.round(n*10)/10) + suf + (F.suffix||'');
+  }
+  return (F.prefix||'') + v.toLocaleString('en-US',
+    {minimumFractionDigits:d, maximumFractionDigits:d}) + (F.suffix||'');
+}
+
+function xval(x){
+  if(CHART.xType==='date') return new Date(String(x)+'T00:00:00Z').getTime();
+  return +x;
+}
+/* A numeric x axis needs its own formatter. Population ticks that read
+   "10000000" eat the plot width; "10M" does not. Falls back to the plain
+   string when no xFormat is set, so existing charts are untouched. */
+function xfmt(v){
+  const XF = CHART.xFormat;
+  if(!XF) return String(v);
+  const d = (XF.decimals===undefined||XF.decimals===null) ? 0 : XF.decimals;
+  let out;
+  if(XF.compact){
+    const a = Math.abs(v); let n=v, suf='';
+    if(a>=1e12){ n=v/1e12; suf='T'; }
+    else if(a>=1e9){ n=v/1e9; suf='B'; }
+    else if(a>=1e6){ n=v/1e6; suf='M'; }
+    else if(a>=1e3){ n=v/1e3; suf='k'; }
+    const dec = (suf && Math.abs(n)<10 && n!==Math.round(n)) ? 1 : 0;
+    out = n.toLocaleString('en-US',
+      {minimumFractionDigits:dec, maximumFractionDigits:dec}) + suf;
+  } else {
+    out = (+v).toLocaleString('en-US',
+      {minimumFractionDigits:d, maximumFractionDigits:d});
+  }
+  return (XF.prefix||'') + out + (XF.suffix||'');
+}
+
+function xlabel(raw, span){
+  if(CHART.xType==='date'){
+    const d = new Date(raw);
+    if(span > 4*365*864e5) return String(d.getUTCFullYear());
+    return d.toLocaleDateString('en-US',{month:'short',year:'2-digit',timeZone:'UTC'});
+  }
+  return CHART.xFormat ? xfmt(raw) : String(raw);
+}
+
+/* "Nice" ticks — steps of 1, 2, 2.5 or 5 x a power of ten. Readers parse those
+   instantly; a step of 37 forces them to do arithmetic mid-scroll. */
+function ticks(min,max,target){
+  const span = max-min || 1;
+  const raw = span/target;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw/mag;
+  const step = (norm<=1?1: norm<=2?2: norm<=2.5?2.5: norm<=5?5:10) * mag;
+  const out=[]; let v = Math.ceil(min/step)*step;
+  for(; v<=max+step*1e-9; v+=step) out.push(+v.toFixed(10));
+  return out;
+}
+
+/* Log-axis helpers.
+
+   A log axis is snapped outward to whole decades. A reader can place a point
+   between 1M and 10M by eye; between 1.37M and 8.2M they cannot, because the
+   spacing is not uniform and the ends carry no round number.
+
+   Ticks are decade boundaries. Inside two decades that leaves too few
+   gridlines, so 2 and 5 are added — the same 1/2/5 progression the linear
+   stepper uses, which is why they still read as "nice". */
+function logSpan(min, max){
+  const lo = Math.pow(10, Math.floor(Math.log10(min)));
+  const hi = Math.pow(10, Math.ceil(Math.log10(max)));
+  return [lo, hi === lo ? lo*10 : hi];
+}
+function logTicks(min, max){
+  const lo = Math.round(Math.log10(min)), hi = Math.round(Math.log10(max));
+  const mults = (hi - lo) <= 2 ? [1,2,5] : [1];
+  const out = [];
+  for(let e=lo; e<=hi; e++)
+    for(const m of mults){
+      const v = m * Math.pow(10, e);
+      if(v >= min*0.999 && v <= max*1.001) out.push(v);
+    }
+  return out;
+}
+/* A log axis cannot show zero or negative values, and a square-root axis cannot
+   show negatives. Silently dropping them would misstate the data, so fail. */
+function assertDomain(vals, axis, scale){
+  if(scale === 'linear') return;
+  const ok = scale === 'log' ? (v => v > 0) : (v => v >= 0);
+  const bad = vals.filter(v => !ok(v));
+  if(bad.length){
+    throw new Error(axis + ' axis: "' + scale + '" needs ' +
+      (scale === 'log' ? 'positive' : 'non-negative') + ' values, but ' +
+      bad.length + ' value(s) fail (e.g. ' + bad[0] + ')');
+  }
+}
+function assertPositive(vals, axis){ assertDomain(vals, axis, 'log'); }
+
+/* The forward transform for each scale. Square root sits between linear and
+   log: it compresses a long tail without the "every gridline is ten times the
+   last" reading cost, which suits counts and populations that span one or two
+   orders of magnitude rather than four. */
+function tfm(scale){
+  if(scale === 'log')  return v => Math.log10(v);
+  if(scale === 'sqrt') return v => Math.sqrt(Math.max(v, 0));
+  return v => v;
+}
+
+/* Round numbers spanning a range: 1, 2, 5 x powers of ten. */
+function nicePool(min, max){
+  const out = [];
+  const lo = Math.floor(Math.log10(Math.max(Math.abs(min) || 1e-9, 1e-9)));
+  const hi = Math.ceil(Math.log10(Math.max(Math.abs(max) || 1, 1e-9)));
+  for(let e = lo; e <= hi; e++)
+    for(const m of [1,2,5]){
+      const v = m * Math.pow(10, e);
+      if(v >= min && v <= max) out.push(v);
+    }
+  return out;
+}
+
+/* Square-root ticks. Evenly spaced values would bunch at the top of the axis,
+   so pick round numbers that land at least a sixth of the axis apart in
+   transformed space. Round labels beat evenly spaced ones — a reader parses
+   "500" instantly and never parses "437". */
+function sqrtTicks(min, max){
+  const pool = nicePool(Math.max(min, 0), max);
+  if(min <= 0) pool.unshift(0);
+  const t = tfm('sqrt');
+  const lo = t(Math.max(min,0)), hi = t(max), span = (hi - lo) || 1;
+  const out = []; let last = -Infinity;
+  pool.forEach(v => {
+    const pos = (t(v) - lo) / span;
+    if(pos - last >= 0.16){ out.push(v); last = pos; }
+  });
+  return out.length >= 3 ? out : ticks(min, max, 4);
+}
+function scaleTicks(scale, min, max, target){
+  if(scale === 'log')  return logTicks(min, max);
+  if(scale === 'sqrt') return sqrtTicks(min, max);
+  return ticks(min, max, target);
+}
+
+/* ==========================================================================
+   Line of best fit.
+
+   The fit is computed in the SAME space the axes are drawn in. On a log y-axis
+   that means regressing log10(y), which is a different model with a different
+   slope, a different R2, and a different p — so switching the scale dropdown
+   refits rather than redrawing the old line at a new angle. A fit computed on
+   raw values would be a straight line rendered as a curve, or worse, a curve
+   rendered straight.
+   ======================================================================= */
+/* Regularized incomplete beta, via the Lentz continued fraction. Needed for the
+   t-distribution tail, which is what turns a slope into a p-value. */
+function betacf(a,b,x){
+  const FPMIN=1e-300, EPS=3e-12;
+  const qab=a+b, qap=a+1, qam=a-1;
+  let c=1, d=1-qab*x/qap;
+  if(Math.abs(d)<FPMIN) d=FPMIN;
+  d=1/d; let h=d;
+  for(let m=1;m<=300;m++){
+    const m2=2*m;
+    let aa=m*(b-m)*x/((qam+m2)*(a+m2));
+    d=1+aa*d; if(Math.abs(d)<FPMIN) d=FPMIN;
+    c=1+aa/c; if(Math.abs(c)<FPMIN) c=FPMIN;
+    d=1/d; h*=d*c;
+    aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));
+    d=1+aa*d; if(Math.abs(d)<FPMIN) d=FPMIN;
+    c=1+aa/c; if(Math.abs(c)<FPMIN) c=FPMIN;
+    d=1/d;
+    const del=d*c; h*=del;
+    if(Math.abs(del-1)<EPS) break;
+  }
+  return h;
+}
+function gammaln(x){
+  const c=[76.18009172947146,-86.50532032941677,24.01409824083091,
+           -1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+  let y=x, tmp=x+5.5;
+  tmp-=(x+0.5)*Math.log(tmp);
+  let ser=1.000000000190015;
+  for(let j=0;j<6;j++) ser+=c[j]/++y;
+  return -tmp+Math.log(2.5066282746310005*ser/x);
+}
+function betai(a,b,x){
+  if(x<=0) return 0;
+  if(x>=1) return 1;
+  const bt=Math.exp(gammaln(a+b)-gammaln(a)-gammaln(b)+a*Math.log(x)+b*Math.log(1-x));
+  return x < (a+1)/(a+b+2) ? bt*betacf(a,b,x)/a : 1-bt*betacf(b,a,1-x)/b;
+}
+/* Two-sided p for a t statistic on df degrees of freedom. */
+function tTest2(t,df){
+  if(!isFinite(t)||df<=0) return NaN;
+  return betai(df/2, 0.5, df/(df+t*t));
+}
+/* Ordinary least squares on already-transformed pairs. */
+function ols(pts){
+  const n=pts.length;
+  if(n<3) return null;
+  let sx=0,sy=0;
+  pts.forEach(p=>{sx+=p[0];sy+=p[1];});
+  const mx=sx/n, my=sy/n;
+  let sxx=0,sxy=0,syy=0;
+  pts.forEach(p=>{const dx=p[0]-mx, dy=p[1]-my; sxx+=dx*dx; sxy+=dx*dy; syy+=dy*dy;});
+  if(sxx<=0||syy<=0) return null;
+  const b=sxy/sxx, a=my-b*mx;
+  const r2=(sxy*sxy)/(sxx*syy);
+  const sse=Math.max(0, syy-b*sxy), df=n-2;
+  const se=Math.sqrt((sse/df)/sxx);
+  /* An exact fit leaves no residual variance, so t is infinite. That is not a
+     failure — it is as significant as a slope can be — but reporting it as
+     "n/a" would read like a broken calculation. */
+  const t = se > 0 ? b/se : (b === 0 ? 0 : Infinity);
+  const p = se > 0 ? tTest2(t, df) : (b === 0 ? 1 : 0);
+  return {a:a,b:b,r2:r2,n:n,df:df,se:se,t:t,p:p};
+}
+
+
+function sig(v, d){
+  if(!isFinite(v)) return '\u2014';
+  if(v === 0) return '0';
+  const mag = Math.floor(Math.log10(Math.abs(v)));
+  const dec = Math.max(0, Math.min(8, (d || 3) - 1 - mag));
+  let out = v.toFixed(dec);
+  if(out.indexOf('.') >= 0) out = out.replace(/0+$/,'').replace(/\.$/,'');
+  return out;
+}
+function pText(p){
+  if(!isFinite(p)) return 'p n/a';
+  if(p < 0.001) return 'p < 0.001';
+  return 'p = ' + p.toFixed(3);
+}
+
+let FITS = [], FITNOTE = '';
+/* Whether the fit is drawn is a viewing decision, not a property of the data,
+   so it lives in runtime state and gets a checkbox. FITMODE remembers whether
+   the config asked for a pooled fit or one per series, so ticking the box
+   restores what the chart was built for rather than a generic default. */
+let SHOWFIT = false, FITMODE = true;
+function fitPossible(){
+  if(CHART.type === 'column' || CHART.type === 'bar') return false;
+  let n = 0;
+  CHART.series.forEach(se => { n += (se.data || []).length; });
+  return n >= 3;
+}
+
+/* Time on the x-axis is fitted in years, not milliseconds: a slope of
+   1.3e-11 per millisecond is arithmetically correct and useless to read. */
+function fitX(raw){
+  const v = xval(raw);
+  return CHART.xType === 'date' ? 1970 + v/3.15576e10 : v;
+}
+function axisTerm(scale, base){
+  if(scale === 'log')  return 'log\u2081\u2080(' + base + ')';
+  if(scale === 'sqrt') return '\u221A' + base;
+  return base;
+}
+
+function computeFits(){
+  FITS = []; FITNOTE = '';
+  if(!SHOWFIT || !fitPossible()) return;
+
+  const S = activeSeries();
+  const tX = tfm(SX), tY = tfm(SY);
+  const perSeries = FITMODE === 'series' && S.length > 1;
+  const groups = perSeries
+    ? S.map((se,i) => ({name:se.name, color:seriesColor(i,se), rows:se.data}))
+    : [{name:null, color:T.ink, rows:[].concat.apply([], S.map(se=>se.data))}];
+
+  const xBase = (CHART.xType === 'date' || CHART.xType === 'year') ? 'year' : 'x';
+  const xTerm = axisTerm(SX, xBase), yTerm = axisTerm(SY, 'y');
+  const lines = [];
+
+  groups.forEach(g => {
+    const pts = [];
+    g.rows.forEach(d => {
+      const xs = tX(fitX(d[0])), ys = tY(+d[1]);
+      if(isFinite(xs) && isFinite(ys)) pts.push([xs, ys]);
+    });
+    const r = ols(pts);
+    if(!r) return;
+    /* The segment is trimmed to the observed data in BOTH directions. Stopping
+       at the x extremes alone is not enough: a steep fit can still run above
+       the highest observation or below the lowest, and a line drawn where no
+       data exists is an extrapolation the reader did not ask for. */
+    const xsv = pts.map(p=>p[0]), ysv = pts.map(p=>p[1]);
+    const dx0 = Math.min.apply(null, xsv), dx1 = Math.max.apply(null, xsv);
+    const dy0 = Math.min.apply(null, ysv), dy1 = Math.max.apply(null, ysv);
+    let lo = dx0, hi = dx1;
+    if(Math.abs(r.b) > 1e-12){
+      const xa = (dy0 - r.a)/r.b, xb = (dy1 - r.a)/r.b;
+      lo = Math.max(lo, Math.min(xa, xb));
+      hi = Math.min(hi, Math.max(xa, xb));
+    } else if(r.a < dy0 || r.a > dy1){
+      return;                      // a flat fit outside the observed band
+    }
+    if(!(hi > lo)) return;         // nothing of the line sits inside the data
+    r.x0 = lo; r.x1 = hi;
+    r.dx0 = dx0; r.dx1 = dx1; r.dy0 = dy0; r.dy1 = dy1;
+    r.color = g.color;
+    FITS.push(r);
+    const eq = yTerm + ' = ' + sig(r.a) + (r.b < 0 ? ' \u2212 ' : ' + ')
+             + sig(Math.abs(r.b)) + '\u00B7' + xTerm;
+    lines.push((g.name ? g.name + ': ' : 'Fit: ') + eq
+      + '  \u00B7  R\u00B2 = ' + r.r2.toFixed(3)
+      + '  \u00B7  slope ' + pText(r.p) + ', n = ' + r.n);
+  });
+
+  if(!lines.length) return;
+  FITNOTE = lines.join('\n');
+}
+
+function wrap(ctx,text,maxW){
+  const words = String(text).split(/\s+/); const lines=[]; let cur='';
+  for(const w of words){
+    const t = cur ? cur+' '+w : w;
+    if(ctx.measureText(t).width > maxW && cur){ lines.push(cur); cur=w; }
+    else cur=t;
+  }
+  if(cur) lines.push(cur);
+  return lines;
+}
+
+function seriesColor(i,s){ return s.color || T.palette[i % T.palette.length]; }
+
+/* --- colour maths, for emphasis ---------------------------------------- */
+function hex2rgb(h){
+  h = String(h).replace('#','');
+  if(h.length===3) h = h.split('').map(c=>c+c).join('');
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+function rgb2hex(a){
+  return '#' + a.map(v=>{
+    const t = Math.max(0,Math.min(255,Math.round(v))).toString(16);
+    return t.length<2 ? '0'+t : t;
+  }).join('');
+}
+function mix(a,b,t){ const A=hex2rgb(a), B=hex2rgb(b);
+  return rgb2hex([0,1,2].map(i=>A[i]+(B[i]-A[i])*t)); }
+function darken(c,t){ return mix(c,'#000000',t); }
+function lighten(c,t){ return mix(c,'#FFFFFF',t); }
+
+/* Emphasis. `highlight` names the marks that carry the argument — a category
+   name or index for bars, a series name for lines. The chosen mark darkens and
+   the rest wash out rather than disappear, so the comparison survives: a reader
+   still sees what the highlighted bar is bigger *than*. Returns null when no
+   highlighting is in play, so the plain palette is used untouched. */
+let HILITE = null;   // runtime state; seeded from CHART.highlight, toggled by clicks
+function isHi(key, idx){
+  if(!HILITE || !HILITE.length) return null;
+  return HILITE.some(v => v===key || v===idx);
+}
+function emphasise(col, hi, isLine){
+  if(hi===null) return col;
+  if(hi) return darken(col, 0.18);
+  return isLine ? '#D1D5DB' : lighten(col, 0.72);
+}
+/* Text is not a mark. A washed-out line still reads as a line at 1.3:1 contrast
+   because it is a continuous shape, but a washed-out *label* is simply
+   illegible. So de-emphasised series keep a readable label colour even as the
+   line or bar they belong to recedes. */
+function labelColour(col, hi){ return hi===false ? T.muted : col; }
+
+/* --- x window ----------------------------------------------------------
+   VIEW is the visible x range in xval() space, driven by the Range control or
+   pinned in the config as `xRange`. Filtering here rather than at draw time
+   means the headline's last-value label, the axis ticks, the exports and the
+   tooltips all agree about what "latest" means. */
+/* Scales and smoothing are runtime state, seeded from the config but driven by
+   the dropdowns. Whatever is on screen is what exports, so a reader of the PNG
+   sees the same axis the chart was checked on. */
+let SX = 'linear', SY = 'linear';
+let SMOOTH = 1, SMOOTH_LABEL = '';
+
+/* How often the series is observed, read off the median gap between x values.
+   Needed because a "weekly moving average" means 7 points on daily data and
+   nothing at all on annual data. */
+function detectFreq(){
+  if(CHART.type === 'column' || CHART.type === 'bar' || CHART.type === 'scatter') return null;
+  const all = [];
+  CHART.series.forEach(se => se.data.forEach(d => all.push(xval(d[0]))));
+  const u = Array.from(new Set(all)).sort((a,b) => a-b);
+  if(u.length < 6) return null;
+  const gaps = [];
+  for(let i=1;i<u.length;i++) gaps.push(u[i]-u[i-1]);
+  gaps.sort((a,b) => a-b);
+  const med = gaps[Math.floor(gaps.length/2)];
+  if(CHART.xType === 'date'){
+    const day = 864e5;
+    if(med <= 2*day)   return 'daily';
+    if(med <= 9*day)   return 'weekly';
+    if(med <= 45*day)  return 'monthly';
+    if(med <= 120*day) return 'quarterly';
+    if(med <= 400*day) return 'yearly';
+    return null;
+  }
+  if((CHART.xType === 'year' || CHART.xType === 'number') && Math.abs(med-1) < 0.01)
+    return 'yearly';
+  return null;
+}
+
+/* Window lengths in observations. Only windows longer than one observation and
+   short enough to leave a usable line are offered — a 5-year average over six
+   years of annual data is two points and a straight line. */
+const SMOOTH_WINDOWS = {
+  daily:     [['Weekly moving average',7],['Monthly moving average',30],
+              ['Yearly moving average',365],['5-year moving average',1825]],
+  weekly:    [['Monthly moving average',4],['Yearly moving average',52],
+              ['5-year moving average',260]],
+  monthly:   [['Yearly moving average',12],['5-year moving average',60]],
+  quarterly: [['Yearly moving average',4],['5-year moving average',20]],
+  yearly:    [['5-year moving average',5]]
+};
+function smoothOptions(){
+  const f = detectFreq();
+  if(!f) return [];
+  const n = Math.max.apply(null, CHART.series.map(se => se.data.length));
+  return (SMOOTH_WINDOWS[f] || []).filter(o => o[1] > 1 && o[1] <= n/2);
+}
+
+/* Trailing, with no partial windows: the first w-1 observations are dropped
+   rather than averaged over a shorter span, because a "12-month average" built
+   from three months is not one. */
+function smoothData(data){
+  if(SMOOTH <= 1 || data.length < SMOOTH) return data;
+  const out = [];
+  for(let i = SMOOTH-1; i < data.length; i++){
+    let sum = 0;
+    for(let k = 0; k < SMOOTH; k++) sum += +data[i-k][1];
+    const p = [data[i][0], sum/SMOOTH];
+    if(data[i].length > 2) p.push(data[i][2]);
+    out.push(p);
+  }
+  return out;
+}
+
+/* Smoothing has to be disclosed on the chart itself, not just in the UI — the
+   PNG travels without the dropdown that produced it. */
+function subheadText(){
+  const base = CHART.subhead || '';
+  if(SMOOTH <= 1 || !SMOOTH_LABEL) return base;
+  const tag = SMOOTH_LABEL.replace(' moving average', '') + ' trailing average';
+  return base ? base + '  ·  ' + tag : tag;
+}
+
+let VIEW = null;
+/* What the Range control filters on. For a line it is the x value. For a
+   scatter, x is a measurement — filtering unemployment rates between 4 and 6
+   would be meaningless — so it filters on each point's date label instead. */
+function rangeKey(d){
+  if(CHART.type==='scatter') return d.length>2 ? new Date(String(d[2])+'T00:00:00Z').getTime() : null;
+  return xval(d[0]);
+}
+function hasRangeKeys(){
+  return CHART.type!=='scatter' ||
+    CHART.series.every(se => se.data.every(d => d.length>2 && !isNaN(new Date(String(d[2])+'T00:00:00Z'))));
+}
+/* Series switched off with the Series checkboxes, by name. Hidden series are
+   dropped here, before anything is measured, so the axes, end labels, copy
+   buttons and exports all rescale to what is left. Each series keeps the
+   colour of its original position, so switching one off never recolours the
+   others. */
+let HIDDEN = new Set();
+function seriesToggleable(){
+  return CHART.type !== 'column' && CHART.type !== 'bar' && CHART.series.length > 1;
+}
+function shownSeries(){
+  if(!HIDDEN.size) return CHART.series;
+  return CHART.series.map((se,i) => Object.assign({}, se, {color: seriesColor(i,se)}))
+                     .filter(se => !HIDDEN.has(se.name));
+}
+function activeSeries(){
+  if(CHART.type==='column' || CHART.type==='bar') return CHART.series;
+  const base = shownSeries();
+  if(!VIEW && SMOOTH <= 1) return base;
+  /* Smooth first, filter second: a trailing average at the left edge of the
+     visible window should use the observations before it, not restart there. */
+  const out = base.map(se=>{
+    let data = smoothData(se.data);
+    if(VIEW) data = data.filter(d => {
+      const k = rangeKey(d);
+      return k===null || (k >= VIEW[0]-1e-9 && k <= VIEW[1]+1e-9);
+    });
+    return { name: se.name, color: se.color, data: data };
+  }).filter(se => se.data.length);
+  return out.length ? out : base;
+}
+
+/* --------------------------------------------------------------------------
+   Header layout is measured before anything is drawn, because the headline
+   wraps to a different number of lines at every width. If the plot height were
+   a fixed fraction of the canvas, a three-line headline on a phone would
+   squeeze the chart into a sliver — the exact failure this avoids.
+   It also decides how series get labelled, since that claims horizontal space:
+     'end'    direct labels at the end of each line (best — no colour decoding)
+     'float'  single series, value floated above the final point
+     'legend' too many series or too little width; a wrapped legend row
+   ----------------------------------------------------------------------- */
+function headerLayout(ctx, W, P){
+  const s = P.s, pad = T.pad*s, safe = P.safe;
+  const L = safe.l + pad, R = W - safe.r - pad, innerW = R - L;
+  const S = activeSeries();
+  const isCat = CHART.type==='column' || CHART.type==='bar';
+
+  const hz = s * hscale(P);          // headline/subhead scale, see PRESETS
+  ctx.font = T.headWeight + ' ' + (T.szHead*hz) + 'px ' + T.fTitle;
+  const hLines = wrap(ctx, CHART.headline, innerW);
+  const hLH = T.szHead*hz*1.2;
+  let h = T.szHead*hz*0.9 + hLines.length*hLH - (hLH - T.szHead*hz*0.30);
+
+  let sLines = [], sLH = T.szSub*hz*1.38;
+  if(CHART.subhead){
+    ctx.font = '400 ' + (T.szSub*hz) + 'px ' + T.fBody;
+    sLines = wrap(ctx, subheadText(), innerW);
+    h += T.szSub*hz*1.05 + sLines.length*sLH - (sLH - T.szSub*hz*0.30);
+  }
+
+  let mode = 'none', rightPad = T.gap*s;
+  if(isCat || CHART.type==='scatter'){
+    mode = S.length>1 ? 'legend' : 'none';
+  } else {
+    ctx.font = '700 ' + (T.szLabel*s) + 'px ' + T.fBody;
+    let need = 0;
+    S.forEach(se=>{
+      const last = se.data[se.data.length-1];
+      const txt = S.length>1 ? se.name : fmt(last[1]);
+      need = Math.max(need, ctx.measureText(txt).width + T.gap*s*1.5);
+    });
+    if(S.length>4 || need > innerW*0.26) mode = S.length>1 ? 'legend' : 'float';
+    else { mode = 'end'; rightPad = need; }
+  }
+
+  let legend = null;
+  if(mode==='legend'){
+    ctx.font = '600 ' + (T.szAxis*s) + 'px ' + T.fBody;
+    const dot = T.dotR*s*1.5, itemGap = T.gap*s*2.0;
+    const rows = [[]]; let w = 0;
+    S.forEach((se,i)=>{
+      const iw = ctx.measureText(se.name).width + dot + T.gap*s*0.8;
+      if(w + iw > innerW && rows[rows.length-1].length){ rows.push([]); w = 0; }
+      const hi = isHi(se.name, i);
+      rows[rows.length-1].push({name:se.name, i:i, w:iw, hi:hi,
+        color: emphasise(seriesColor(i,se), hi, true)});
+      w += iw + itemGap;
+    });
+    legend = {rows:rows, rowH:T.szAxis*s*1.85, dot:dot, itemGap:itemGap};
+    h += T.gap*s*1.2 + rows.length*legend.rowH;
+  }
+
+  return {L:L, R:R, innerW:innerW, hLines:hLines, hLH:hLH, sLines:sLines, sLH:sLH,
+          headerH:h, mode:mode, rightPad:rightPad, legend:legend};
+}
+
+
+/* ==========================================================================
+   Renderer — one draw path for screen and for every export size, so what you
+   see on screen is exactly what downloads.
+   ======================================================================= */
+let HIT = [];     // clickable / hoverable marks
+let LEGHIT = [];  // clickable legend items, in design-space rects
+let PATHS = [];   // drawn polylines, so labels can be kept off the lines
+let LABELS_DROPPED = [];  // point labels that could not be placed without
+                          // overlapping; surfaced in the console so a silent
+                          // omission never passes for a deliberate one
+
+function draw(ctx, W, H, P, opts){
+  opts = opts || {};
+  const s = P.s, pad = T.pad*s, safe = P.safe;
+  const HL = headerLayout(ctx, W, P);
+  const L = HL.L, R = HL.R, innerW = HL.innerW;
+  let y = safe.t + pad;
+
+  ctx.save();
+  ctx.fillStyle = T.bg; ctx.fillRect(0,0,W,H);
+  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+
+  /* headline — must use the same scale headerLayout measured with, or the
+     reserved block and the drawn block disagree and the plot shifts. */
+  const hz = s * hscale(P);
+  ctx.font = T.headWeight + ' ' + (T.szHead*hz) + 'px ' + T.fTitle;
+  ctx.fillStyle = T.ink;
+  y += T.szHead*hz*0.9;
+  HL.hLines.forEach(ln=>{ ctx.fillText(ln, L, y); y += HL.hLH; });
+  y -= HL.hLH - T.szHead*hz*0.30;
+
+  /* subhead */
+  if(HL.sLines.length){
+    ctx.font = '400 ' + (T.szSub*hz) + 'px ' + T.fBody;
+    ctx.fillStyle = T.muted;
+    y += T.szSub*hz*1.05;
+    HL.sLines.forEach(ln=>{ ctx.fillText(ln, L, y); y += HL.sLH; });
+    y -= HL.sLH - T.szSub*hz*0.30;
+  }
+
+  /* Legend, only when direct labelling isn't possible. Each item is recorded as
+     a click target: a legend that names the colours but cannot be used to
+     isolate one is a worse version of the same information. */
+  LEGHIT = [];
+  if(HL.legend){
+    const lg = HL.legend;
+    ctx.font = '600 ' + (T.szAxis*s) + 'px ' + T.fBody;
+    y += T.gap*s*1.2;
+    lg.rows.forEach(row=>{
+      y += lg.rowH;
+      let x = L;
+      row.forEach(it=>{
+        ctx.fillStyle = it.color;
+        ctx.beginPath();
+        ctx.arc(x + lg.dot*0.42, y - T.szAxis*s*0.30, lg.dot*0.42, 0, 6.284);
+        ctx.fill();
+        /* Dimmed but never washed out: the label still has to be readable when
+           its series is the one being pushed back. */
+        ctx.fillStyle = it.hi === false ? T.muted : T.ink;
+        ctx.fillText(it.name, x + lg.dot + T.gap*s*0.4, y - T.szAxis*s*0.06);
+        LEGHIT.push({key:it.name,
+                     x0:x - T.gap*s*0.3, x1:x + it.w + T.gap*s*0.3,
+                     y0:y - lg.rowH*0.92, y1:y + lg.rowH*0.18});
+        x += it.w + lg.itemGap;
+      });
+    });
+  }
+
+  const alSpace = axisLabelSpace(P);
+  const plotTop = y + T.gap*s*1.9 + alSpace.top;
+  computeFits();
+  const footH = footerHeight(ctx, P, L, R);
+  const plotBottom = H - safe.b - pad - footH;
+
+  /* value range */
+  const isCat = CHART.type==='column' || CHART.type==='bar';
+  const S = activeSeries();
+  let vals = [];
+  if(isCat && CHART.stacked){
+    for(let i=0;i<CHART.categories.length;i++){
+      let pos=0,neg=0;
+      S.forEach(se=>{ const v=+se.data[i]||0; if(v>=0) pos+=v; else neg+=v; });
+      vals.push(pos,neg);
+    }
+  } else {
+    S.forEach(se=> se.data.forEach(d => vals.push(isCat ? +d : +d[1])));
+  }
+  vals = vals.filter(v=>!isNaN(v));
+  const ySc = isCat ? 'linear' : SY;
+  const xSc = isCat ? 'linear' : SX;
+  const yLog = ySc === 'log', ySqrt = ySc === 'sqrt';
+  const xLog = xSc === 'log', xSqrt = xSc === 'sqrt';
+  assertDomain(vals, 'y', ySc);
+
+  /* yMin/yMax are pinned once in the config, but the scale dropdown lets a
+     reader pick log/sqrt/linear live, and a bound that was fine for the
+     config's own scale can be nonsense under another one - 0 is the natural
+     floor for a sqrt axis but log10(0) is -Infinity. assertDomain already
+     rejects bad DATA; this rejects a bad CONFIG BOUND under the scale that is
+     actually active, so a pinned min silently steps aside instead of handing
+     the tick generator an infinite axis to fill. */
+  const hasMin = CHART.yMin!==null && CHART.yMin!==undefined && !(yLog && CHART.yMin<=0);
+  const hasMax = CHART.yMax!==null && CHART.yMax!==undefined && !(yLog && CHART.yMax<=0);
+  let vMin = hasMin ? CHART.yMin : Math.min.apply(null,vals);
+  let vMax = hasMax ? CHART.yMax : Math.max.apply(null,vals);
+  if(yLog){
+    /* Percentage padding is meaningless in log space; snap to decades. */
+    const sp = logSpan(hasMin ? vMin : Math.min.apply(null,vals),
+                       hasMax ? vMax : Math.max.apply(null,vals));
+    if(!hasMin) vMin = sp[0];
+    if(!hasMax) vMax = sp[1];
+  } else if(ySqrt){
+    /* A square-root axis that does not start at zero throws away the reason to
+       use one: the compression is only interpretable relative to the origin. */
+    if(!hasMin) vMin = 0;
+    if(!hasMax) vMax = vMax + (vMax - vMin)*0.05;
+  } else {
+    if(CHART.yZero || isCat){ vMin = Math.min(vMin,0); vMax = Math.max(vMax,0); }
+    if(vMin===vMax){ vMin-=1; vMax+=1; }
+    const padv = (vMax-vMin)*0.08;
+    if(!hasMin && !(CHART.yZero||isCat)) vMin -= padv;
+    if(!hasMax) vMax += padv;
+  }
+  /* Forward transforms. Hit-testing is done in screen space, so no inverse
+     is needed anywhere. */
+  const tY = tfm(ySc);
+  const tX = tfm(xSc);
+
+  if(CHART.type === 'bar'){
+    const g = drawHBars(ctx, P, L, R, innerW, plotTop, plotBottom - T.szAxis*s*0.4);
+    drawFooter(ctx, W, H, P, L, R, opts);
+    ctx.restore();
+    return g;
+  }
+
+  const tallish = P.h/P.w > 1.2;
+  const tk = scaleTicks(ySc, vMin, vMax, tallish ? 4 : 5);
+
+  /* left margin from the widest tick label — measured, never guessed */
+  ctx.font = '500 ' + (T.szAxis*s) + 'px ' + T.fBody;
+  let yLabW = 0;
+  tk.forEach(t => { yLabW = Math.max(yLabW, ctx.measureText(fmt(t)).width); });
+
+  const wantEndLabels = HL.mode === 'end';
+  const rightPad = HL.rightPad;
+
+  const pL = L + yLabW + T.gap*s*1.1;
+  const pR = R - rightPad;
+  const pT = plotTop;
+  const pB = plotBottom - T.szAxis*s*1.9 - alSpace.bottom;
+  const pw = pR-pL, ph = pB-pT;
+  const yLo = tY(vMin), yHi = tY(vMax);
+  const Y = v => pB - (tY(v)-yLo)/(yHi-yLo)*ph;
+
+  /* x scale */
+  let X, Xn, xs=[], xSpan=0, xMin=0, xMax=0, xLo=0;
+  if(isCat){
+    const n = CHART.categories.length;
+    X = i => pL + (i+0.5)*pw/n;
+  } else {
+    S.forEach(se => se.data.forEach(d => xs.push(xval(d[0]))));
+    assertDomain(xs, 'x', xSc);
+    /* Same reasoning as the y-axis bound guard above: a pinned xMin/xMax that
+       is fine for the config's own scale can be invalid once the dropdown
+       switches to log, so it steps aside under that scale rather than being
+       handed to the tick generator as -Infinity. */
+    const hasXMin = CHART.xMin!==null && CHART.xMin!==undefined && !(xLog && CHART.xMin<=0);
+    const hasXMax = CHART.xMax!==null && CHART.xMax!==undefined && !(xLog && CHART.xMax<=0);
+    xMin = Math.min.apply(null,xs);
+    xMax = Math.max.apply(null,xs);
+    if(xSqrt && !hasXMin) xMin = 0;
+    if(xLog && !(hasXMin && hasXMax)){
+      /* Snapping to whole decades gives round numbers at the ends, but it
+         overshoots when the data sits just inside a decade — 9,492 to 176M
+         snaps to 1k–1B and leaves a third of the plot empty. Pin xMin/xMax
+         when that happens. */
+      const sp = logSpan(xMin, xMax);
+      if(!hasXMin) xMin = sp[0];
+      if(!hasXMax) xMax = sp[1];
+    }
+    if(hasXMin) xMin = CHART.xMin;
+    if(hasXMax) xMax = CHART.xMax;
+    xLo = tX(xMin); const xHi = tX(xMax);
+    xSpan = (xHi - xLo) || 1;
+    /* Two entry points on purpose. Xn takes an x that has already been through
+       xval() — a timestamp, a year number. X takes a raw config value and
+       converts first. Collapsing them into one guessing function is what broke
+       every date axis: a timestamp was fed back through the date parser and
+       came out NaN, so the labels vanished off-canvas. */
+    Xn = v => pL + (tX(v) - xLo)/xSpan*pw;
+    X  = x => Xn(xval(x));
+  }
+
+  /* shaded bands — full height */
+  if(!isCat && CHART.bands) CHART.bands.forEach(b=>{
+    const x0=Math.max(pL,X(b.x0)), x1=Math.min(pR,X(b.x1));
+    if(x1>x0){ ctx.fillStyle=T.band; ctx.fillRect(x0,pT,x1-x0,ph); }
+  });
+
+  /* shaded regions — bounded on both axes. Drawn under the gridlines so the
+     grid still reads through them. */
+  if(!isCat && CHART.regions) CHART.regions.forEach(g=>{
+    const x0 = Math.max(pL, g.x0==null ? pL : X(g.x0));
+    const x1 = Math.min(pR, g.x1==null ? pR : X(g.x1));
+    const yA = g.y1==null ? pT : Y(g.y1);
+    const yB = g.y0==null ? pB : Y(g.y0);
+    const y0 = Math.max(pT, Math.min(yA,yB));
+    const y1 = Math.min(pB, Math.max(yA,yB));
+    if(x1>x0 && y1>y0){ ctx.fillStyle=T.band; ctx.fillRect(x0,y0,x1-x0,y1-y0); }
+  });
+
+  /* gridlines + y labels */
+  ctx.lineWidth = Math.max(1, s*0.7);
+  ctx.font = '500 ' + (T.szAxis*s) + 'px ' + T.fBody;
+  ctx.textAlign='right';
+  tk.forEach(t=>{
+    const yy = Y(t);
+    ctx.strokeStyle = (Math.abs(t)<1e-9 && vMin<0) ? T.zero : T.grid;
+    ctx.beginPath(); ctx.moveTo(pL,yy); ctx.lineTo(pR,yy); ctx.stroke();
+    ctx.fillStyle = T.muted;
+    ctx.fillText(fmt(t), pL - T.gap*s*0.85, yy + T.szAxis*s*0.36);
+  });
+  ctx.textAlign='left';
+
+  /* x labels */
+  ctx.fillStyle = T.muted;
+  ctx.font = '500 ' + (T.szAxis*s) + 'px ' + T.fBody;
+  const xLabY = pB + T.szAxis*s*1.7;
+  if(isCat){
+    const slot = pw/CHART.categories.length;
+    ctx.textAlign='center';
+    CHART.categories.forEach((c,i)=>{
+      let txt = String(c);
+      /* Shrinking text to fit is how axis labels become unreadable on a phone.
+         Truncate instead — or switch to type:'bar' so each label gets a line. */
+      while(ctx.measureText(txt).width > slot*0.94 && txt.length>3) txt = txt.slice(0,-2)+'…';
+      ctx.fillText(txt, X(i), xLabY);
+    });
+    ctx.textAlign='left';
+  } else if(xLog || xSqrt){
+    /* Decades, not data values. Picking from the observed x values — which is
+       right for a time series, where they are years — would put 9,492 and
+       176,000,000 on a population axis. */
+    const picks = scaleTicks(xSc, xMin, xMax, 5);
+    picks.forEach((v,i)=>{
+      const px = Xn(v);
+      ctx.strokeStyle = T.grid;
+      ctx.beginPath(); ctx.moveTo(px,pT); ctx.lineTo(px,pB); ctx.stroke();
+      ctx.fillStyle = T.muted;
+      ctx.textAlign = i===0 ? 'left' : (i===picks.length-1 ? 'right' : 'center');
+      ctx.fillText(xlabel(v, xSpan), Math.min(Math.max(px,pL),pR), xLabY);
+    });
+    ctx.textAlign='left';
+  } else {
+    const uniq = Array.from(new Set(xs)).sort((a,b)=>a-b);
+    const per = ctx.measureText('2020').width*2.9;
+    const maxLab = Math.max(2, Math.floor(pw/per));
+    const step = Math.max(1, Math.ceil(uniq.length/maxLab));
+    const picks = [];
+    for(let i=0;i<uniq.length;i+=step) picks.push(uniq[i]);
+    if(picks[picks.length-1] !== uniq[uniq.length-1]) picks.push(uniq[uniq.length-1]);
+    picks.forEach((v,i)=>{
+      const px = Xn(v);
+      ctx.textAlign = i===0 ? 'left' : (i===picks.length-1 ? 'right' : 'center');
+      ctx.fillText(xlabel(v, xSpan), Math.min(Math.max(px,pL),pR), xLabY);
+    });
+    ctx.textAlign='left';
+  }
+
+  /* reference lines */
+  if(!isCat && CHART.rules) CHART.rules.forEach(r=>{
+    const vertical = (r.axis||'x') === 'x';
+    const p = vertical ? X(r.at) : Y(r.at);
+    if(vertical ? (p<pL-0.5 || p>pR+0.5) : (p<pT-0.5 || p>pB+0.5)) return;
+    ctx.save();
+    ctx.strokeStyle = T.zero;
+    ctx.lineWidth = Math.max(1.1, s*0.95);
+    ctx.setLineDash([s*5, s*4]);
+    ctx.beginPath();
+    if(vertical){ ctx.moveTo(p,pT); ctx.lineTo(p,pB); }
+    else        { ctx.moveTo(pL,p); ctx.lineTo(pR,p); }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    if(r.label){
+      ctx.font = '600 ' + (T.szAnno*s) + 'px ' + T.fBody;
+      ctx.fillStyle = T.faint;
+      if(vertical){
+        const w = ctx.measureText(r.label).width;
+        ctx.textAlign = (p + w + T.gap*s > pR) ? 'right' : 'left';
+        const off = ctx.textAlign==='right' ? -T.gap*s*0.6 : T.gap*s*0.6;
+        ctx.fillText(r.label, p + off, pT + T.szAnno*s*1.15);
+      } else {
+        ctx.textAlign = 'left';
+        ctx.fillText(r.label, pL + T.gap*s*0.6, p - T.szAnno*s*0.5);
+      }
+      ctx.textAlign = 'left';
+    }
+    ctx.restore();
+  });
+
+  /* axis titles */
+  if(CHART.yLabel){
+    ctx.font = '600 ' + (T.szAxis*s) + 'px ' + T.fBody;
+    ctx.fillStyle = T.muted; ctx.textAlign = 'left';
+    ctx.fillText(CHART.yLabel, L, pT - T.szAxis*s*0.85);
+  }
+  if(CHART.xLabel){
+    ctx.font = '600 ' + (T.szAxis*s) + 'px ' + T.fBody;
+    ctx.fillStyle = T.muted; ctx.textAlign = 'center';
+    ctx.fillText(CHART.xLabel, (pL+pR)/2, pB + T.szAxis*s*1.7 + alSpace.bottom*0.72);
+    ctx.textAlign = 'left';
+  }
+
+  /* marks */
+  HIT = []; PATHS = []; LABELS_DROPPED = [];
+  const showVals = CHART.valueLabels==='auto'
+      ? (isCat && CHART.categories.length<=12 && !CHART.stacked)
+      : !!CHART.valueLabels;
+
+  if(isCat){
+    const n = CHART.categories.length, slot = pw/n;
+    const bandW = slot*0.66;
+    const nS = CHART.stacked ? 1 : S.length;
+    const bw = bandW/nS;
+    const tops = new Array(n).fill(0), bots = new Array(n).fill(0);
+    S.forEach((se,si)=>{
+      se.data.forEach((raw,i)=>{
+        const v = +raw||0;
+        const hi = isHi(CHART.categories[i], i);
+        const col = emphasise(seriesColor(si,se), hi, false);
+        let y0,y1,x0,w;
+        if(CHART.stacked){
+          const base = v>=0 ? tops[i] : bots[i];
+          y0 = Y(base); y1 = Y(base+v);
+          if(v>=0) tops[i]+=v; else bots[i]+=v;
+          x0 = X(i)-bandW/2; w = bandW;
+        } else {
+          y0 = Y(0); y1 = Y(v);
+          x0 = X(i)-bandW/2 + si*bw; w = bw*0.9;
+        }
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.roundRect(x0, Math.min(y0,y1), w, Math.max(Math.abs(y1-y0),1), 2*s);
+        ctx.fill();
+        HIT.push({x:x0+w/2, y:Math.min(y0,y1), cx:x0+w/2, cy:(y0+y1)/2,
+                  v:v, cat:CHART.categories[i], key:CHART.categories[i], color:col});
+        if(showVals){
+          ctx.font = '700 ' + (T.szLabel*s) + 'px ' + T.fBody;
+          ctx.fillStyle = labelColour(col, hi); ctx.textAlign='center';
+          const ly = v>=0 ? Math.min(y0,y1)-T.gap*s*0.6 : Math.max(y0,y1)+T.szLabel*s*1.15;
+          ctx.fillText(fmt(v), x0+w/2, ly);
+          ctx.textAlign='left';
+        }
+      });
+    });
+  } else if(CHART.type==='scatter'){
+    S.forEach((se,si)=>{
+      const hi = isHi(se.name, si);
+      const col = emphasise(seriesColor(si,se), hi, true);
+      ctx.fillStyle = col;
+      se.data.forEach(d=>{
+        ctx.globalAlpha=.82;
+        ctx.beginPath(); ctx.arc(X(d[0]), Y(d[1]), T.dotR*s*1.05, 0, 6.284); ctx.fill();
+        ctx.globalAlpha=1;
+        /* A scatter point's identity is its third element — usually the date it
+           came from. Without it a hover can only report the two coordinates the
+           reader can already see, which tells them nothing. */
+        HIT.push({x:X(d[0]), y:Y(d[1]), v:d[1], xv:d[0], cat:d[0],
+                  key:se.name, pt:(d.length>2 ? d[2] : null), color:col});
+      });
+    });
+  } else {
+    const endLabels = [];
+    S.forEach((se,si)=>{
+      const hi = isHi(se.name, si);
+      const col = emphasise(seriesColor(si,se), hi, true);
+      const labCol = labelColour(col, hi);
+      const pts = se.data.map(d=>[X(d[0]), Y(d[1])]);
+      if(CHART.type==='area'){
+        const base = Y(Math.max(vMin,0));
+        ctx.globalAlpha=.13; ctx.fillStyle=col;
+        ctx.beginPath(); ctx.moveTo(pts[0][0], base);
+        pts.forEach(p=>ctx.lineTo(p[0],p[1]));
+        ctx.lineTo(pts[pts.length-1][0], base);
+        ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+      }
+      ctx.strokeStyle=col; ctx.lineWidth=T.lineW*s;
+      ctx.lineJoin='round'; ctx.lineCap='round';
+      ctx.beginPath();
+      pts.forEach((p,i)=> i ? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1]));
+      ctx.stroke();
+
+      /* Terminal dot + direct label. A legend makes the reader look away from
+         the data to decode colors — worst possible move on a small screen. */
+      const last = pts[pts.length-1];
+      ctx.fillStyle=col;
+      ctx.beginPath(); ctx.arc(last[0], last[1], T.dotR*s, 0, 6.284); ctx.fill();
+      const lastV = fmt(se.data[se.data.length-1][1]);
+      if(wantEndLabels){
+        endLabels.push({x:last[0], y:last[1], y0:last[1], name:se.name, val:lastV, color:labCol});
+      } else if(HL.mode==='float'){
+        /* Narrow screen: float the latest value over the final point rather
+           than surrender a quarter of the plot width to a margin. */
+        ctx.font = '700 ' + (T.szLabel*s) + 'px ' + T.fBody;
+        ctx.fillStyle = labCol;
+        ctx.textAlign = 'right';
+        let ly = last[1] - T.dotR*s - T.gap*s*0.9;
+        if(ly - T.szLabel*s < pT) ly = last[1] + T.dotR*s + T.szLabel*s*1.3;
+        ctx.fillText(lastV, Math.min(last[0] + T.gap*s*0.7, pR), ly);
+        ctx.textAlign = 'left';
+      }
+      PATHS.push(pts);
+      se.data.forEach((d,i)=> HIT.push({x:pts[i][0], y:pts[i][1],
+        v:d[1], cat:d[0], key:se.name, color:col}));
+    });
+
+    /* Two countries ending on the same number put their labels on the same
+       pixel. Stack them apart by the minimum readable spacing, keep the stack
+       inside the plot, and accept a small offset from the line — a label that
+       is 8px off its endpoint is fine; two labels on top of each other are not. */
+    if(endLabels.length){
+      const twoLine = S.length > 1;
+      const blockH = twoLine ? T.szLabel*s*1.10 + T.szAxis*s*1.18 : T.szLabel*s*1.15;
+      endLabels.sort((a,b)=>a.y-b.y);
+      for(let i=1;i<endLabels.length;i++){
+        if(endLabels[i].y - endLabels[i-1].y < blockH)
+          endLabels[i].y = endLabels[i-1].y + blockH;
+      }
+      const over = endLabels[endLabels.length-1].y + (twoLine?T.szAxis*s*1.18:0) - pB;
+      if(over > 0) endLabels.forEach(l => l.y -= over);
+      const under = pT + T.szLabel*s*0.55 - endLabels[0].y;
+      if(under > 0) endLabels.forEach(l => l.y += under);
+
+      endLabels.forEach(l=>{
+        const lx = l.x + T.gap*s*1.1;
+        /* A short elbow back to the point, drawn only when the label moved. */
+        if(Math.abs(l.y - l.y0) > 2){
+          ctx.strokeStyle = mix(l.color, '#FFFFFF', 0.55);
+          ctx.lineWidth = Math.max(1, s*0.9);
+          ctx.beginPath();
+          ctx.moveTo(l.x + T.dotR*s*0.9, l.y0);
+          ctx.lineTo(lx - T.gap*s*0.35, l.y);
+          ctx.stroke();
+        }
+        ctx.font = '700 ' + (T.szLabel*s) + 'px ' + T.fBody;
+        ctx.fillStyle = l.color;
+        ctx.fillText(twoLine ? l.name : l.val, lx, l.y + T.szLabel*s*0.36);
+        if(twoLine){
+          ctx.font = '500 ' + (T.szAxis*s) + 'px ' + T.fBody;
+          ctx.fillStyle = T.muted;
+          ctx.fillText(l.val, lx, l.y + T.szLabel*s*0.36 + T.szAxis*s*1.18);
+        }
+      });
+    }
+  }
+
+  /* The fit is straight in transformed space, so two endpoints suffice. It is
+     clipped to the plot: an extrapolated tail wandering over the axis labels
+     would imply the model applies out there, which is exactly what a reader
+     should not conclude. */
+  if(FITS.length && !isCat){
+    ctx.save();
+    ctx.beginPath(); ctx.rect(pL, pT, pw, ph); ctx.clip();
+    ctx.setLineDash([6*s, 5*s]);
+    ctx.lineWidth = T.lineW*s*0.60;
+    ctx.lineCap = 'butt';
+    const px = xs2 => pL + (xs2 - xLo)/xSpan*pw;
+    const py = ys2 => pB - (ys2 - yLo)/(yHi - yLo)*ph;
+    FITS.forEach(f => {
+      ctx.strokeStyle = f.color;
+      ctx.globalAlpha = 0.85;
+      ctx.beginPath();
+      ctx.moveTo(px(f.x0), py(f.a + f.b*f.x0));
+      ctx.lineTo(px(f.x1), py(f.a + f.b*f.x1));
+      ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  /* Annotations. The requested offset is treated as a preference, not an
+     instruction: if the label would land on top of the data it flips to a free
+     side. Text is then painted with a background-coloured halo, because even a
+     well-placed label eventually crosses a gridline or a line, and a halo keeps
+     it readable without adding a boxed callout to an otherwise clean chart. */
+  /* Sample the drawn lines densely. Testing only the data vertices was not
+     enough — between two points a line sweeps across a lot of canvas, and a
+     label placed there looks like it was thrown at the chart. */
+  const obstacles = [];
+  PATHS.forEach(p=>{
+    for(let i=1;i<p.length;i++){
+      const a0=p[i-1], a1=p[i];
+      const n = Math.max(2, Math.round(Math.hypot(a1[0]-a0[0], a1[1]-a0[1])/(5*s)));
+      for(let k=0;k<=n;k++)
+        obstacles.push({x:a0[0]+(a1[0]-a0[0])*k/n, y:a0[1]+(a1[1]-a0[1])*k/n});
+    }
+  });
+  if(!obstacles.length) HIT.forEach(h=>obstacles.push(h));
+
+  /* An annotation's dot has no colour of its own to reach for - it is marking
+     an existing point, not introducing a new series - so it should read as
+     that point's own legend colour, not a fixed house colour that can clash
+     with (or misidentify) whichever series it actually sits on. Matched by
+     coordinate rather than carrying an explicit series reference, since that
+     is all an annotation config already gives us. Falls back to T.ink, a
+     neutral that doesn't claim a series identity, when no point matches. */
+  function annotationColor(a){
+    for(let i=0;i<S.length;i++){
+      const se = S[i];
+      for(const d of se.data){
+        if(d[0]===a.x && (+d[1])===(+a.y))
+          return emphasise(seriesColor(i, se), isHi(se.name, i), true);
+      }
+    }
+    return S.length===1 ? emphasise(seriesColor(0, S[0]), isHi(S[0].name, 0), true) : T.ink;
+  }
+
+  (CHART.annotations||[]).forEach(a=>{
+    const ax = isCat ? X(CHART.categories.indexOf(a.x)) : X(a.x);
+    const ay = Y(a.y);
+    if(!isFinite(ax) || ax < pL-2 || ax > pR+2) return;   // outside the x window
+    /* a.series ties a note to one series: it goes when that series is switched
+       off. Any note left off the rescaled y axis goes too. */
+    if(a.series && HIDDEN.has(a.series)) return;
+    if(!isFinite(ay) || ay < pT-2 || ay > pB+2) return;
+
+    ctx.font = '600 ' + (T.szAnno*s) + 'px ' + T.fBody;
+    const lines = wrap(ctx, a.text, innerW*0.44);
+    const lh = T.szAnno*s*1.28;
+    let tw = 0; lines.forEach(l => { tw = Math.max(tw, ctx.measureText(l).width); });
+    const th = (lines.length-1)*lh + T.szAnno*s;
+
+    const dx0 = (a.dx===undefined ? 0 : a.dx)*s;
+    const dy0 = (a.dy===undefined ? -28 : a.dy)*s;
+    const mag = Math.abs(dy0) || 28*s;
+    const nudge = Math.max(Math.abs(dx0), T.gap*s*1.4);
+
+    /* The author's offset is candidate zero and gets a small bonus; the rest
+       sweep above and below at increasing distance, on both sides. */
+    const cands = [[dx0,dy0]];
+    [-1,1].forEach(sy=>{
+      [1, 1.7, 2.5, 3.4].forEach(m=>{
+        cands.push([dx0, sy*mag*m]);
+        cands.push([nudge, sy*mag*m]);
+        cands.push([-nudge, sy*mag*m]);
+      });
+    });
+
+    let best = cands[0], bestScore = Infinity;
+    cands.forEach((o,ci)=>{
+      const tx = ax+o[0], ty = ay+o[1];
+      const x0 = o[0] < 0 ? tx-tw : tx;
+      const y0 = ty - T.szAnno*s;
+      const padx = 5*s, pady = 4*s;
+      let score = ci===0 ? -10 : 0;
+      let near = Infinity;
+      obstacles.forEach(h=>{
+        if(h.x > x0-padx && h.x < x0+tw+padx && h.y > y0-pady && h.y < y0+th+pady)
+          score += 12;                                  // sitting on the data
+        const dx = h.x < x0 ? x0-h.x : (h.x > x0+tw ? h.x-x0-tw : 0);
+        const dy = h.y < y0 ? y0-h.y : (h.y > y0+th ? h.y-y0-th : 0);
+        near = Math.min(near, Math.hypot(dx,dy));
+      });
+      if(isFinite(near)) score += Math.max(0, 22*s - near) * 0.5;  // prefer clear air
+      if(x0 < pL) score += 40 + (pL-x0);                // running off the plot
+      if(x0+tw > pR) score += 40 + (x0+tw-pR);
+      if(y0 < pT) score += 60 + (pT-y0);
+      if(y0+th > pB) score += 60 + (y0+th-pB);
+      score += Math.hypot(o[0],o[1]) * 0.015;           // all else equal, stay close
+      if(score < bestScore){ bestScore = score; best = o; }
+    });
+
+    /* Scoring picks the best of several positions, but scoring alone can still
+       land a label past the axis when every candidate is poor. Clamping the
+       text box into the plot rectangle makes "inside the chart field" a
+       guarantee rather than a preference. */
+    const right = best[0] < 0;
+    const inset = 3*s;
+    let bx = right ? ax + best[0] - tw : ax + best[0];
+    let by = ay + best[1] - T.szAnno*s;
+    bx = Math.max(pL + inset, Math.min(bx, pR - tw - inset));
+    by = Math.max(pT + inset, Math.min(by, pB - th - inset));
+    const tx = right ? bx + tw : bx;
+    const ty = by + T.szAnno*s;
+
+    ctx.strokeStyle = T.faint; ctx.lineWidth = Math.max(1, s*0.8);
+    ctx.beginPath(); ctx.moveTo(ax, ay);
+    ctx.lineTo(right ? bx + tw + T.gap*s*0.3 : bx - T.gap*s*0.3, ty + T.szAnno*s*0.3);
+    ctx.stroke();
+
+    ctx.textAlign = right ? 'right' : 'left';
+    ctx.lineJoin = 'round'; ctx.lineWidth = 3.6*s; ctx.strokeStyle = T.bg;
+    lines.forEach((ln,i)=> ctx.strokeText(ln, tx, ty + i*lh));
+    ctx.fillStyle = T.ink;
+    lines.forEach((ln,i)=> ctx.fillText(ln, tx, ty + i*lh));
+    ctx.textAlign = 'left';
+
+    ctx.fillStyle = annotationColor(a);
+    ctx.beginPath(); ctx.arc(ax, ay, T.dotR*s*0.75, 0, 6.284); ctx.fill();
+  });
+
+  /* Point labels. A name sits beside its dot with no leader line and no dot of
+     its own — the mark is already there. Placement is first-fit across eight
+     offsets rather than scored like an annotation: with a dozen or more labels
+     the cheap rule reads the same and cannot spend minutes optimising. A label
+     that will not fit is dropped, never shrunk and never overlapped. */
+  if(CHART.type==='scatter' && showPointLabels(P) && CHART.pointLabels
+     && (CHART.pointLabels === 'all' || CHART.pointLabels.length)){
+    const want = CHART.pointLabels === 'all' ? null
+               : new Set(CHART.pointLabels.map(String));
+    const fsz = T.szAnno*s*0.92;
+    ctx.font = '600 ' + fsz + 'px ' + T.fBody;
+    const g = T.gap*s*0.65, placed = [], dropped = [];
+    const cands = [[1,0.32],[-1,0.32],[1,-0.85],[-1,-0.85],
+                   [1,1.35],[-1,1.35],[0,-1.15],[0,1.6],
+                   [1,-1.9],[-1,-1.9],[1,2.4],[-1,2.4],
+                   [1,-2.9],[-1,-2.9],[1,3.4],[-1,3.4]];
+
+    /* Two passes. The first refuses to put a name on top of any dot; the second
+       allows it, because the text carries a background-coloured halo and stays
+       readable over a mark. Without the second pass a dense cluster loses every
+       label it has — which is exactly where the interesting countries are, so
+       dropping them all would quietly delete the argument.
+       Label-on-label overlap is refused in both passes: two names on one spot
+       are illegible in a way that a name over a dot is not. */
+    HIT.forEach(h=>{
+      if(!h.pt || (want && !want.has(String(h.pt)))) return;
+      const tw = ctx.measureText(h.pt).width, th = fsz;
+      let box = null, ta = 'left';
+      for(let pass = 0; pass < 2 && !box; pass++){
+        for(const c of cands){
+          const x = h.x + (c[0]>=0 ? g : -g - tw), y = h.y + th*c[1];
+          const b = [x, y-th*0.8, x+tw, y+th*0.25];
+          if(b[0] < pL || b[2] > pR || b[1] < pT || b[3] > pB) continue;
+          if(placed.some(p => b[0] < p[2] && p[0] < b[2] && b[1] < p[3] && p[1] < b[3])) continue;
+          if(pass === 0 && HIT.some(o => o!==h && o.x > b[0]-2*s && o.x < b[2]+2*s
+                                  && o.y > b[1]-2*s && o.y < b[3]+2*s)) continue;
+          box = b; ta = c[0]>=0 ? 'left' : 'right'; break;
+        }
+      }
+      if(!box){ dropped.push(h.pt); return; }
+      placed.push(box);
+      const tx = ta==='left' ? box[0] : box[2];
+      ctx.textAlign = ta;
+      ctx.lineJoin='round'; ctx.lineWidth = 3.2*s; ctx.strokeStyle = T.bg;
+      ctx.strokeText(h.pt, tx, box[3]-th*0.25);
+      ctx.fillStyle = T.ink;
+      ctx.fillText(h.pt, tx, box[3]-th*0.25);
+      ctx.textAlign = 'left';
+    });
+    LABELS_DROPPED = dropped;
+  }
+
+  drawFooter(ctx, W, H, P, L, R, opts);
+  ctx.restore();
+  return {pL:pL,pR:pR,pT:pT,pB:pB};
+}
+
+function logoHeight(P){ return CHART.logo===false ? 0 : T.szFoot*P.s*fscale(P)*3.6; }
+
+function logoWidth(ctx, P){
+  const h = logoHeight(P);
+  if(!h) return 0;
+  ctx.font = '700 ' + (h*0.268) + 'px ' + T.fLogo;
+  let tw = 0;
+  ['ECON','CHRIS','CLARKE'].forEach(t => { tw = Math.max(tw, measureSpaced(ctx, t, h*0.026)); });
+  return h + h*0.15 + tw;
+}
+
+/* Footer lines are WRAPPED, never truncated. A note explaining a definition
+   break or a data gap is content — it is the thing that keeps the chart honest
+   when it gets screenshotted — so the footer grows to fit it rather than
+   trailing off in an ellipsis. */
+function footerLines(ctx, P, L, R){
+  const s = P.s * fscale(P);
+  const room = R - L - (logoWidth(ctx,P) ? logoWidth(ctx,P) + T.gap*s*2.2 : 0);
+  ctx.font = '400 ' + (T.szFoot*s) + 'px ' + T.fBody;
+  const parts = [];
+  if(CHART.source) parts.push('Source: ' + CHART.source);
+  if(CHART.sourceUrl) parts.push(CHART.sourceUrl);
+  if(CHART.handle && !logoHeight(P)) parts.push(CHART.handle);
+  return {
+    src:  (parts.length && showFooterText(P)) ? wrap(ctx, parts.join('   ·   '), room) : [],
+    /* The note carries the fit statistics as well as the author's own note.
+       Both wrap; neither is truncated. */
+    note: showFooterText(P) ? (function(){
+      let out = [];
+      if(CHART.note) out = out.concat(wrap(ctx, CHART.note, room));
+      if(FITNOTE) FITNOTE.split('\n').forEach(function(t){
+        out = out.concat(wrap(ctx, t, room));
+      });
+      return out;
+    })() : [],
+    lh:   T.szFoot*s*1.45,
+    room: room
+  };
+}
+
+function footerHeight(ctx, P, L, R){
+  const s = P.s * fscale(P);
+  const f = footerLines(ctx, P, L, R);
+  const text = (f.src.length + f.note.length) * f.lh + T.szFoot*s*0.9;
+  return Math.max(text, logoHeight(P)*0.95 + T.szFoot*s*1.1);
+}
+
+/* Axis titles. The y title sits horizontally above the plot rather than rotated
+   up the side: rotated text is slow to read on a phone held in one hand, and
+   the space above the top gridline is otherwise wasted. */
+function axisLabelSpace(P){
+  const s = P.s;
+  return { top: CHART.yLabel ? T.szAxis*s*1.75 : 0,
+           bottom: CHART.xLabel ? T.szAxis*s*1.7 : 0 };
+}
+
+/* Letter-spaced text, measured and drawn a glyph at a time. Canvas has a
+   letterSpacing property now but support is uneven, and the wordmark's wide
+   tracking is the most recognisable thing about it. */
+function drawSpaced(ctx, text, x, y, sp){
+  let cx = x;
+  for(const ch of text){ ctx.fillText(ch, cx, y); cx += ctx.measureText(ch).width + sp; }
+  return cx - x - sp;
+}
+function measureSpaced(ctx, text, sp){
+  let w = 0;
+  for(const ch of text) w += ctx.measureText(ch).width + sp;
+  return w - sp;
+}
+
+/* The logo is drawn, not placed as an image. A 500px PNG rescaled into a
+   1080-wide vertical crop goes soft and pixelated, which is exactly the tell
+   that makes a chart look amateur. Drawing it means it is sharp at every export
+   size, and it lets the axis and crossing lines carry real weight instead of
+   the hairlines that disappear at thumbnail size. */
+function drawLogo(ctx, xRight, yBottom, h){
+  const sq = h;
+  const words = ['ECON','CHRIS','CLARKE'];
+  /* Type sized so the three-line block fills 94% of the square: nearly flush,
+     with a hair of optical inset so the caps don't look like they're sliding
+     off the edge. All-caps means no descenders, so cap-top to final baseline
+     is genuinely flush rather than merely close. */
+  const tSize = h*0.268, tSp = h*0.026, lineH = tSize*1.395, gap = h*0.15;
+
+  ctx.font = '700 ' + tSize + 'px ' + T.fLogo;
+  ctx.textAlign = 'left';
+  let tw = 0;
+  words.forEach(t => { tw = Math.max(tw, measureSpaced(ctx, t, tSp)); });
+
+  const total = sq + gap + tw;
+  const x = xRight - total, y = yBottom - h;
+
+  ctx.fillStyle = T.red;
+  ctx.fillRect(x, y, sq, sq);
+
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineJoin = 'miter';
+  ctx.lineCap = 'butt';
+  ctx.lineWidth = sq*0.095;
+  const ax = x + sq*0.215, ay = y + sq*0.845;
+  ctx.beginPath();
+  ctx.moveTo(ax, y + sq*0.105);
+  ctx.lineTo(ax, ay);
+  ctx.lineTo(x + sq*0.905, ay);
+  ctx.stroke();
+
+  /* Supply steep, demand shallow, both running axis to axis. The unequal
+     slopes are what make this read as a supply-and-demand diagram rather than
+     as a generic X — a symmetric cross is a multiplication sign first. */
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x + sq*0.30, y + sq*0.82); ctx.lineTo(x + sq*0.80, y + sq*0.14);
+  ctx.moveTo(x + sq*0.24, y + sq*0.26); ctx.lineTo(x + sq*0.88, y + sq*0.70);
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+
+  ctx.fillStyle = T.red;
+  ctx.font = '700 ' + tSize + 'px ' + T.fLogo;
+  const capH = tSize*0.72;
+  const top = y + (h - ((words.length-1)*lineH + capH))/2;
+  words.forEach((t,i) => drawSpaced(ctx, t, x + sq + gap, top + capH + i*lineH, tSp));
+  return total;
+}
+
+function drawFooter(ctx, W, H, P, L, R, opts){
+  const s = P.s * fscale(P), pad = T.pad*P.s;
+  const fy = H - P.safe.b - pad + T.szFoot*s*0.2;
+
+  let logoW = 0;
+  if(opts.logoImg){                       // custom image override
+    const lh = logoHeight(P);
+    logoW = lh * (opts.logoImg.width/opts.logoImg.height);
+    ctx.imageSmoothingEnabled = true;
+    if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(opts.logoImg, R-logoW, fy + T.szFoot*s*0.3 - lh, logoW, lh);
+  } else if(CHART.logo !== false){
+    logoW = drawLogo(ctx, R, fy + T.szFoot*s*0.3, logoHeight(P));
+  }
+
+  const f = footerLines(ctx, P, L, R);
+  ctx.textAlign = 'left';
+  ctx.font = '400 ' + (T.szFoot*s) + 'px ' + T.fBody;
+  ctx.fillStyle = T.faint;
+
+  /* Stack upward from the baseline: source last, note above it. */
+  let ly = fy;
+  for(let i = f.src.length - 1; i >= 0; i--){ ctx.fillText(f.src[i], L, ly); ly -= f.lh; }
+  for(let i = f.note.length - 1; i >= 0; i--){ ctx.fillText(f.note[i], L, ly); ly -= f.lh; }
+}
+
+/* --------------------------------------------------------------------------
+   Horizontal bars. Deliberately axis-free: every bar is labelled with its
+   category on the left and its value at the tip, so there is nothing to trace
+   back to and nothing that has to shrink to fit. This is the form to reach for
+   whenever category names are longer than a word or two, because each label
+   gets a whole line instead of a sliver of the x-axis.
+   ----------------------------------------------------------------------- */
+function drawHBars(ctx, P, L, R, innerW, pT, pB){
+  const s = P.s;
+  const cats = CHART.categories, S = CHART.series, n = cats.length;
+
+  let vals = [];
+  S.forEach(se => se.data.forEach(v => vals.push(+v||0)));
+  let mn = Math.min(0, Math.min.apply(null, vals));
+  let mx = Math.max(0, Math.max.apply(null, vals));
+  if(mn === mx) mx = mn + 1;
+
+  ctx.font = '500 ' + (T.szAxis*s) + 'px ' + T.fBody;
+  let catW = 0;
+  cats.forEach(c => { catW = Math.max(catW, ctx.measureText(String(c)).width); });
+  catW = Math.min(catW, innerW*0.44);
+
+  ctx.font = '700 ' + (T.szLabel*s) + 'px ' + T.fBody;
+  let valW = 0;
+  vals.forEach(v => { valW = Math.max(valW, ctx.measureText(fmt(v)).width); });
+
+  const anyNeg = mn < 0, anyPos = mx > 0;
+  const gutter = T.gap*s*0.9;
+  const pL = L + catW + gutter + (anyNeg ? valW + gutter : 0);
+  const pR = R - (anyPos ? valW + gutter : 0);
+  const X = v => pL + (v-mn)/(mx-mn)*(pR-pL);
+  const zero = X(0);
+
+  const ph = pB - pT, rowH = ph/n;
+  const nS = S.length, barH = Math.min(rowH*0.62/nS, T.szLabel*s*2.4);
+
+  if(anyNeg && anyPos){
+    ctx.strokeStyle = T.zero; ctx.lineWidth = Math.max(1, s*0.8);
+    ctx.beginPath(); ctx.moveTo(zero, pT); ctx.lineTo(zero, pB); ctx.stroke();
+  }
+
+  HIT = [];
+  cats.forEach((c,i)=>{
+    const cy = pT + (i+0.5)*rowH;
+
+    ctx.font = '500 ' + (T.szAxis*s) + 'px ' + T.fBody;
+    ctx.fillStyle = isHi(c, i) === false ? T.muted : T.ink;
+    ctx.textAlign = 'right';
+    let lab = String(c);
+    while(ctx.measureText(lab).width > catW && lab.length > 4) lab = lab.slice(0,-2)+'…';
+    ctx.fillText(lab, L + catW, cy + T.szAxis*s*0.36);
+    ctx.textAlign = 'left';
+
+    S.forEach((se,si)=>{
+      const v = +se.data[i]||0;
+      const hi = isHi(c, i);
+      const col = emphasise(seriesColor(si,se), hi, false);
+      const by = cy - (nS*barH)/2 + si*barH;
+      const x0 = Math.min(zero, X(v)), w = Math.max(Math.abs(X(v)-zero), 1);
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.roundRect(x0, by, w, barH*0.86, 2*s);
+      ctx.fill();
+
+      ctx.font = '700 ' + (T.szLabel*s) + 'px ' + T.fBody;
+      ctx.fillStyle = labelColour(col, hi);
+      ctx.textAlign = v < 0 ? 'right' : 'left';
+      ctx.fillText(fmt(v), v < 0 ? x0 - gutter : x0 + w + gutter,
+                   by + barH*0.43 + T.szLabel*s*0.36);
+      ctx.textAlign = 'left';
+
+      HIT.push({x:(v<0?x0:x0+w), y:by+barH*0.43, cx:x0+w/2, cy:by+barH*0.43,
+                v:v, cat:c, key:c, color:col});
+    });
+  });
+
+  return {pL:pL, pR:pR, pT:pT, pB:pB};
+}
+
+/* ==========================================================================
+   Screen render, resize, tooltips, export
+   ======================================================================= */
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let logoImg = null, geom = null, curW = 0;
+
+/* --------------------------------------------------------------------------
+   View modes. The three buttons no longer produce three downloads — they
+   change which frame is on screen, live and interactive. Download then takes
+   whatever is showing. This removes the old gap where the responsive web
+   layout was a fourth, unexported design that nobody ever published.
+   ----------------------------------------------------------------------- */
+let MODE = 'substack';
+
+/* Desktop opens on the Substack frame, a phone opens on the vertical one,
+   because that is the shape each is most likely to be publishing. A coarse
+   pointer alone is not enough — tablets and touch laptops are coarse and wide,
+   and they want the wide frame. */
+function defaultMode(){
+  const asked = new URLSearchParams(location.search).get('mode');
+  if(asked && PRESETS[asked]) return asked;
+  const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  const narrow = Math.min(window.innerWidth, window.innerHeight) <= 820;
+  return (coarse && narrow) ? 'vertical' : 'substack';
+}
+
+/* Fit the frame to the viewport without ever cropping it. Height is capped as
+   well as width, otherwise the 9:16 frame runs off the bottom of a laptop. */
+function displayScale(P){
+  const stage = document.getElementById('stage');
+  const availW = Math.max(200, (stage ? stage.clientWidth : window.innerWidth) - 16);
+  const availH = Math.max(240, window.innerHeight * 0.86);
+  return Math.min(availW / P.w, availH / P.h);
+}
+
+function render(){
+  const P = PRESETS[MODE];
+  const k = displayScale(P);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  const bs = k * dpr;                     // backing-store scale
+  curW = P.w;
+  cv.width  = Math.round(P.w * bs);
+  cv.height = Math.round(P.h * bs);
+  cv.style.width  = Math.round(P.w * k) + 'px';
+  cv.style.height = Math.round(P.h * k) + 'px';
+  ctx.setTransform(bs, 0, 0, bs, 0, 0);
+  geom = draw(ctx, P.w, P.h, P, {logoImg:logoImg});
+  /* Line the controls up with the chart rather than with the page: the frames
+     are different widths, so a fixed control width would sit under the canvas
+     edge in one frame and past it in another. */
+  const ctl = document.getElementById('controls');
+  if(ctl) ctl.style.width = Math.round(P.w * k) + 'px';
+}
+
+function setMode(m){
+  if(!PRESETS[m]) return;
+  MODE = m;
+  document.querySelectorAll('#bar button[data-m]').forEach(b =>
+    b.classList.toggle('on', b.dataset.m === MODE));
+  render();
+}
+
+function tooltip(e){
+  if(!geom) return;
+  const r = cv.getBoundingClientRect();
+  const cx = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy = e.touches ? e.touches[0].clientY : e.clientY;
+  const k = curW / r.width;
+  const mx = (cx-r.left)*k, my = (cy-r.top)*k;
+  let best=null, bd=1e9;
+  HIT.forEach(h=>{ const d=Math.hypot(h.x-mx,(h.y-my)*0.55); if(d<bd){bd=d;best=h;} });
+  render();
+  if(!best || bd > 70) return;
+  const s = PRESETS[MODE].s;
+  ctx.save();
+  ctx.strokeStyle=T.grid; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(best.x,geom.pT); ctx.lineTo(best.x,geom.pB); ctx.stroke();
+  ctx.fillStyle=best.color;
+  ctx.beginPath(); ctx.arc(best.x,best.y,T.dotR*s*1.15,0,6.284); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2*s;
+  ctx.beginPath(); ctx.arc(best.x,best.y,T.dotR*s*1.15,0,6.284); ctx.stroke();
+  let lbl;
+  if(CHART.type==='column' || CHART.type==='bar'){
+    lbl = best.cat + '   ' + fmt(best.v);
+  } else if(CHART.type==='scatter'){
+    const nx = CHART.xFormat ? xfmt(best.xv) : (Math.round(best.xv*100)/100);
+    lbl = (best.pt ? best.pt + '   ' : '') + nx + ', ' + fmt(best.v);
+  } else {
+    lbl = xlabel(xval(best.cat), 0) + '   ' + fmt(best.v);
+  }
+  ctx.font='600 ' + (T.szLabel*s) + 'px ' + T.fBody;
+  const bw = ctx.measureText(lbl).width + 16*s, bh = T.szLabel*s*2.1;
+  const bx = Math.min(Math.max(best.x-bw/2, geom.pL), geom.pR-bw);
+  let by = best.y - bh - 12*s; if(by < geom.pT) by = best.y + 12*s;
+  ctx.fillStyle='rgba(17,24,39,.93)';
+  ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,5*s); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.textAlign='left';
+  ctx.fillText(lbl, bx+8*s, by+bh*0.65);
+  ctx.restore();
+}
+
+function slug(t){ return String(t).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60); }
+
+function download(name){
+  const P = PRESETS[name || MODE];
+  name = name || MODE;
+  const off = document.createElement('canvas');
+  off.width = P.w*P.ex; off.height = P.h*P.ex;
+  const c = off.getContext('2d');
+  c.setTransform(P.ex,0,0,P.ex,0,0);
+  draw(c, P.w, P.h, P, {logoImg:logoImg});
+  const a = document.createElement('a');
+  a.download = slug(CHART.headline)+'-'+name+'.png';
+  a.href = off.toDataURL('image/png');
+  a.click();
+  render();
+}
+
+function srTable(){
+  const rows = [];
+  if(CHART.type==='column'||CHART.type==='bar'){
+    rows.push('<tr><th>Category</th>'+CHART.series.map(s=>'<th>'+s.name+'</th>').join('')+'</tr>');
+    CHART.categories.forEach((c,i)=>
+      rows.push('<tr><th>'+c+'</th>'+CHART.series.map(s=>'<td>'+fmt(+s.data[i])+'</td>').join('')+'</tr>'));
+  } else {
+    CHART.series.forEach(s=>{
+      rows.push('<tr><th colspan="2">'+s.name+'</th></tr>');
+      s.data.forEach(d=>rows.push('<tr><td>'+d[0]+'</td><td>'+fmt(d[1])+'</td></tr>'));
+    });
+  }
+  document.getElementById('srtable').innerHTML =
+    '<caption>'+CHART.headline+'. '+CHART.subhead+'</caption>'+rows.join('');
+  cv.setAttribute('role','img');
+  cv.setAttribute('aria-label', CHART.headline+'. '+CHART.subhead+'. Full data in the table that follows.');
+}
+
+/* The note and source as selectable DOM text. The canvas copy is what the PNG
+   carries; this is the one you can drag-select and paste. */
+function copyText(){
+  const el = document.getElementById('copytext');
+  if(!el) return;
+  const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const out = [];
+  out.push('<p class="ct-head">' + esc(CHART.headline) + '</p>');
+  if(subheadText()) out.push('<p>' + esc(subheadText()) + '</p>');
+  if(CHART.note) out.push('<p>' + esc(CHART.note) + '</p>');
+  if(FITNOTE) out.push('<p>' + esc(FITNOTE).replace(/\n/g,'<br>') + '</p>');
+  const src = [];
+  if(CHART.source) src.push('Source: ' + esc(CHART.source));
+  if(CHART.sourceUrl) src.push('<a href="' + esc(CHART.sourceUrl) + '">'
+                               + esc(CHART.sourceUrl) + '</a>');
+  if(src.length) out.push('<p class="src">' + src.join(' &middot; ') + '</p>');
+  el.innerHTML = out.join('');
+}
+
+/* --------------------------------------------------------------------------
+   Range control. Zooming a time series is an editorial decision — the same
+   data says different things over 1984-2024 and over 2019-2024 — so it belongs
+   in the chart rather than in a re-run. Whatever window is showing is what the
+   PNG exports, and the control prints the matching `xRange` line so a chosen
+   window can be pinned into the config permanently.
+   ----------------------------------------------------------------------- */
+function buildZoom(){
+  const z = document.getElementById('zoom');
+  if(!z) return;
+  if(CHART.type==='column' || CHART.type==='bar'){ z.innerHTML = ''; return; }
+
+  const scatter = CHART.type==='scatter';
+  if(scatter && !hasRangeKeys()){ z.innerHTML=''; return; }
+
+  /* On a scatter the options are the years the points come from, so the control
+     reads "2000 to 2026" rather than a list of unemployment rates. */
+  const seen = [], key = {};
+  CHART.series.forEach(se => se.data.forEach(d=>{
+    const raw = scatter ? String(d[2]).slice(0,4) : d[0];
+    const k = String(raw);
+    if(!key[k]){ key[k]=1; seen.push(raw); }
+  }));
+  const ord = v => scatter ? +v : xval(v);
+  seen.sort((a,b)=>ord(a)-ord(b));
+  if(seen.length < 4){ z.innerHTML=''; return; }
+
+  const cur = [seen[0], seen[seen.length-1]];
+  const lab = v => scatter ? String(v) : xlabel(xval(v), 0);
+
+  const opts = sel => seen.map(v =>
+    '<option value="'+v+'"'+(String(v)===String(sel)?' selected':'')+'>'
+    + lab(v) + '</option>').join('');
+
+  z.innerHTML = '<span class="ctllab">Range</span>'
+    + '<select id="zfrom">'+opts(cur[0])+'</select>'
+    + '<span class="to">to</span>'
+    + '<select id="zto">'+opts(cur[1])+'</select>'
+    + '<button id="zreset">Full range</button>';
+
+  const from = document.getElementById('zfrom'), to = document.getElementById('zto');
+
+  function apply(){
+    let a = from.value, b = to.value;
+    if(ord(a) >= ord(b)){                       // keep at least two points visible
+      const ia = seen.findIndex(v=>String(v)===String(a));
+      b = seen[Math.min(ia+1, seen.length-1)];
+      to.value = b;
+    }
+    const full = String(a)===String(seen[0]) && String(b)===String(seen[seen.length-1]);
+    if(full){ VIEW = null; }
+    else if(scatter){
+      VIEW = [ Date.UTC(+a,0,1), Date.UTC(+b,11,31) ];
+    } else {
+      VIEW = [xval(a), xval(b)];
+    }
+    render();
+  }
+  from.addEventListener('change', apply);
+  to.addEventListener('change', apply);
+  document.getElementById('zreset').addEventListener('click', function(){
+    from.value = seen[0]; to.value = seen[seen.length-1]; apply();
+  });
+  apply();
+}
+
+/* --------------------------------------------------------------------------
+   Axis controls.
+
+   A numeric axis gets a scale dropdown. A time axis does not — log years are
+   meaningless — so it gets smoothing instead, which is the transformation that
+   actually matters on a time series: it is how you separate a trend from the
+   noise around it.
+   ----------------------------------------------------------------------- */
+function xIsTime(){ return CHART.xType === 'year' || CHART.xType === 'date'; }
+
+const SCALE_LABELS = [['Linear','linear'], ['Log (base 10)','log'], ['Square root','sqrt']];
+
+function buildAxes(){
+  const z = document.getElementById('axes');
+  if(!z) return;
+  if(CHART.type === 'column' || CHART.type === 'bar'){ z.innerHTML = ''; return; }
+
+  const sel = (id, opts, cur) =>
+    '<select id="'+id+'">' + opts.map(o =>
+      '<option value="'+o[1]+'"'+(String(o[1])===String(cur)?' selected':'')+'>'+o[0]+'</option>'
+    ).join('') + '</select>';
+
+  const parts = [];
+  const smooth = xIsTime() ? smoothOptions() : [];
+
+  /* The first control in the row takes the shared label column so it lines up
+     under Range and View; anything after it is inline. */
+  if(xIsTime()){
+    if(smooth.length)
+      parts.push('<span class="ctllab">Smoothing</span>' +
+        sel('axsm', [['Regular',1]].concat(smooth.map(o => [o[0], o[1]])), SMOOTH));
+  } else {
+    parts.push('<span class="ctllab">X scale</span>' + sel('axsx', SCALE_LABELS, SX));
+  }
+  const yLab = parts.length ? '<span class="ctllab inline">Y scale</span>'
+                            : '<span class="ctllab">Y scale</span>';
+  parts.push(yLab + sel('axsy', SCALE_LABELS, SY));
+  if(fitPossible())
+    parts.push('<label class="ctlcheck"><input type="checkbox" id="axfit"'
+      + (SHOWFIT ? ' checked' : '') + '> Line of best fit</label>');
+  parts.push('<span class="ctlwarn" id="axwarn"></span>');
+
+  z.innerHTML = parts.join('');
+
+  const warn = document.getElementById('axwarn');
+  /* A log axis on a series containing a zero throws rather than dropping the
+     point. Catch it here, put the control back, and say why — the alternative
+     is a blank chart with no explanation. */
+  function attempt(apply, undo){
+    warn.textContent = '';
+    apply();
+    try { render(); }
+    catch(err){ undo(); render(); warn.textContent = String(err.message || err); }
+  }
+  const sy = document.getElementById('axsy');
+  if(sy) sy.addEventListener('change', function(){
+    const prev = SY;
+    attempt(()=>{ SY = sy.value; }, ()=>{ SY = prev; sy.value = prev; });
+  });
+  const sx = document.getElementById('axsx');
+  if(sx) sx.addEventListener('change', function(){
+    const prev = SX;
+    attempt(()=>{ SX = sx.value; }, ()=>{ SX = prev; sx.value = prev; });
+  });
+  const sm = document.getElementById('axsm');
+  if(sm) sm.addEventListener('change', function(){
+    SMOOTH = +sm.value || 1;
+    const hit = smooth.filter(o => o[1] === SMOOTH)[0];
+    SMOOTH_LABEL = hit ? hit[0] : '';
+    render();
+  });
+  const fitBox = document.getElementById('axfit');
+  if(fitBox) fitBox.addEventListener('change', function(){
+    SHOWFIT = fitBox.checked;
+    render();
+  });
+}
+
+/* Series checkboxes: switch a line off to let the rest fill the plot, e.g. drop
+   a large-valued series so smaller ones are readable. At least one stays on. */
+function buildSeriesToggles(){
+  const z = document.getElementById('serrow');
+  if(!seriesToggleable()){ z.innerHTML = ''; return; }
+  const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  z.innerHTML = '<span class="ctllab">Series</span>' + CHART.series.map((se,i) =>
+    '<label class="sercb" style="--sw:' + seriesColor(i,se) + '"><input type="checkbox" data-i="' + i + '"' +
+    (HIDDEN.has(se.name) ? '' : ' checked') + '>' + esc(se.name) + '</label>').join('') +
+    '<span class="ctlwarn" id="serwarn"></span>';
+  const warn = document.getElementById('serwarn');
+  z.querySelectorAll('input').forEach(cb => cb.addEventListener('change', function(){
+    const name = CHART.series[+cb.dataset.i].name;
+    warn.textContent = '';
+    if(cb.checked) HIDDEN.delete(name);
+    else if(HIDDEN.size >= CHART.series.length - 1){
+      cb.checked = true; warn.textContent = 'At least one series has to stay on.'; return;
+    } else HIDDEN.add(name);
+    cb.parentNode.classList.toggle('off', !cb.checked);
+    render();
+  }));
+}
+
+if(new URLSearchParams(location.search).has('embed')) document.body.classList.add('embed');
+document.querySelectorAll('#bar button[data-m]').forEach(b=>
+  b.addEventListener('click', function(){ setMode(b.dataset.m); }));
+document.getElementById('dl').addEventListener('click', function(){ download(); });
+
+/* --------------------------------------------------------------------------
+   Copying.
+
+   Canvas text is pixels, not text — there is no DOM node to select, so it
+   cannot be dragged over or copied the way HTML can. Rather than pretend
+   otherwise, the same strings are offered explicitly: the chart's words as
+   plain text, and the underlying numbers as TSV that pastes into a spreadsheet.
+   ----------------------------------------------------------------------- */
+function chartText(){
+  const out = [];
+  if(CHART.headline) out.push(CHART.headline);
+  if(subheadText()) out.push(subheadText());
+  if(CHART.note) out.push('', CHART.note);
+  if(FITNOTE) out.push('', FITNOTE);
+  const src = [];
+  if(CHART.source) src.push('Source: ' + CHART.source);
+  if(CHART.sourceUrl) src.push(CHART.sourceUrl);
+  if(src.length) out.push('', src.join('  ·  '));
+  return out.join('\n');
+}
+
+/* TSV, because that is what pastes into Excel and Google Sheets as columns.
+   The visible series are used, so a zoomed or smoothed chart copies the
+   numbers actually on screen rather than the untouched originals. */
+function chartData(){
+  const rows = [];
+  if(CHART.type==='column' || CHART.type==='bar'){
+    rows.push(['Category'].concat(CHART.series.map(s=>s.name||'Value')).join('\t'));
+    CHART.categories.forEach((c,i)=>
+      rows.push([c].concat(CHART.series.map(s=>s.data[i])).join('\t')));
+  } else {
+    const S = activeSeries();
+    const xlab = CHART.xLabel || (CHART.xType==='date' ? 'Date' : 'X');
+    if(CHART.type==='scatter'){
+      rows.push([xlab, CHART.yLabel||'Y', 'Label', 'Series'].join('\t'));
+      S.forEach(se=>se.data.forEach(d=>
+        rows.push([d[0], d[1], (d.length>2?d[2]:''), se.name||''].join('\t'))));
+    } else {
+      rows.push([xlab].concat(S.map(s=>s.name||'Value')).join('\t'));
+      const keys = [];
+      S.forEach(se=>se.data.forEach(d=>{ if(keys.indexOf(String(d[0]))<0) keys.push(String(d[0])); }));
+      keys.sort((a,b)=>xval(a)-xval(b));
+      keys.forEach(k=>{
+        const cells = S.map(se=>{
+          const hit = se.data.filter(d=>String(d[0])===k)[0];
+          return hit ? hit[1] : '';
+        });
+        rows.push([k].concat(cells).join('\t'));
+      });
+    }
+  }
+  return rows.join('\n');
+}
+
+/* Charts get opened straight off disk, where file:// is not a secure context
+   and the async clipboard API is unavailable. The textarea fallback is not
+   legacy cruft — it is the path that actually runs most of the time. */
+function copyToClipboard(text, said){
+  const done = () => {
+    const el = document.getElementById('cpsaid');
+    if(el){ el.textContent = said; setTimeout(()=>{ el.textContent=''; }, 2200); }
+  };
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(done, ()=>fallback(text, done));
+  } else fallback(text, done);
+}
+function fallback(text, done){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); done(); }
+  catch(e){
+    const el = document.getElementById('cpsaid');
+    if(el) el.textContent = 'Could not copy — select the text below the chart instead';
+  }
+  document.body.removeChild(ta);
+}
+document.getElementById('cptext').addEventListener('click', function(){
+  copyToClipboard(chartText(), 'Chart text copied');
+});
+document.getElementById('cpdata').addEventListener('click', function(){
+  copyToClipboard(chartData(), 'Data copied as columns — paste into a spreadsheet');
+});
+/* Click a mark to toggle emphasis. Highlighting is an editorial choice made by
+   eye — which bar makes the point is usually obvious only once the chart is
+   drawn — so it belongs here rather than requiring a rebuild. The exports read
+   the same state, so what's on screen is what downloads. */
+function toggleHi(e){
+  const r = cv.getBoundingClientRect();
+  const k = curW / r.width;
+  const mx = (e.clientX-r.left)*k, my = (e.clientY-r.top)*k;
+  /* Legend first: the items sit outside the plot, so there is no ambiguity,
+     and a click there should always mean "isolate this series". */
+  const onLegend = LEGHIT.filter(l =>
+    mx >= l.x0 && mx <= l.x1 && my >= l.y0 && my <= l.y1)[0];
+  if(onLegend){ toggleKey(onLegend.key); return; }
+
+  let best = null, bd = 1e9;
+  HIT.forEach(h=>{
+    const hx = h.cx===undefined ? h.x : h.cx;
+    const hy = h.cy===undefined ? h.y : h.cy;
+    const d = Math.hypot(hx-mx, hy-my);
+    if(d < bd){ bd = d; best = h; }
+  });
+  if(!best || best.key===undefined || bd > 90) return;
+  toggleKey(best.key);
+}
+
+/* One series in, one series out. Clicking an already-highlighted item clears
+   it, so there is always a way back to the neutral chart without a reset
+   button to explain. */
+function toggleKey(key){
+  if(!HILITE) HILITE = [];
+  const i = HILITE.indexOf(key);
+  if(i >= 0) HILITE.splice(i,1); else HILITE.push(key);
+  if(!HILITE.length) HILITE = null;
+  render();
+}
+cv.addEventListener('click', toggleHi);
+cv.addEventListener('mousemove', tooltip);
+cv.addEventListener('touchstart', tooltip, {passive:true});
+cv.addEventListener('touchmove', tooltip, {passive:true});
+cv.addEventListener('mouseleave', render);
+window.addEventListener('resize', render);
+
+function boot(){
+  /* A tinted canvas has to tint everything derived from it — the shaded bands
+     and the halo behind annotation text are both painted in the background
+     colour, and leaving them white would print pale rectangles on the chart. */
+  if(CHART.background){
+    T.bg = CHART.background;
+    T.band = mix(T.bg, '#111827', 0.055);
+    T.grid = mix(T.bg, '#111827', 0.115);
+    T.zero = mix(T.bg, '#111827', 0.24);
+    document.documentElement.style.background = T.bg;
+    document.body.style.background = T.bg;
+  }
+  srTable();
+  copyText();
+  const h = CHART.highlight;
+  HILITE = (h===null || h===undefined || h==='') ? null
+         : (Array.isArray(h) ? h.slice() : [h]);
+  if(CHART.xRange && CHART.xRange.length===2)
+    VIEW = [xval(CHART.xRange[0]), xval(CHART.xRange[1])];
+  cv.style.cursor = 'pointer';
+  SX = CHART.xScale || 'linear';
+  SY = CHART.yScale || 'linear';
+  SHOWFIT = !!CHART.fit;
+  FITMODE = CHART.fit === 'series' ? 'series' : true;
+  (CHART.hidden || []).forEach(n => HIDDEN.add(n));   // config: series off at load
+  buildZoom();
+  buildAxes();
+  buildSeriesToggles();
+  if(typeof CHART.logo === 'string' && CHART.logo){
+    logoImg = new Image();
+    logoImg.onload = render;
+    logoImg.onerror = function(){ logoImg=null; render(); };
+    logoImg.src = CHART.logo;
+  } else render();
+}
+(document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(boot);
+setTimeout(function(){ if(!geom) boot(); }, 1500);
+</script>
+</body>
+</html>

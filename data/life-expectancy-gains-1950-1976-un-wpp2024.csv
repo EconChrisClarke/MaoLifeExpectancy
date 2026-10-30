@@ -1,0 +1,238 @@
+Location,LocID,ISO3_code,le_1950,le_1976,gain_1950_76,pop_1950_thousands,in_scatter,fitted_gain
+Cambodia,116,KHM,38.86,11.63,-27.23,4375.26,False,
+Lebanon,422,LBN,59.9,36.44,-23.46,1349.35,False,
+Equatorial Guinea,226,GNQ,40.11,30.54,-9.57,226.56,False,
+Timor-Leste,626,TLS,29.16,25.86,-3.3,414.76,False,
+Niger,562,NER,35.9,37.1,1.2,2597.81,True,13.38
+Western Sahara,732,ESH,34.93,36.26,1.34,12.96,False,
+Nauru,520,NRU,56.61,58.21,1.61,3.41,False,
+Rwanda,646,RWA,43.18,45.31,2.13,2157.1,True,11.98
+Guernsey,831,GGY,71.23,73.64,2.41,44.95,False,
+Jersey,832,JEY,69.42,71.98,2.56,57.11,False,
+Burundi,108,BDI,40.94,43.69,2.75,2254.94,True,12.41
+Israel,376,ISR,69.86,72.67,2.81,1289.24,True,6.84
+New Zealand,554,NZL,69.25,72.4,3.14,1911.26,True,6.95
+Netherlands,528,NLD,71.44,74.67,3.23,10113.76,True,6.53
+Somalia,706,SOM,41.45,44.73,3.27,2213.13,True,12.31
+Saint Helena,654,SHN,66.01,69.27,3.27,5.22,False,
+Estonia,233,EST,66.36,69.74,3.38,1102.04,True,7.51
+Denmark,208,DNK,70.31,73.77,3.46,4268.4,True,6.75
+Norway,578,NOR,71.59,75.05,3.46,3265.19,True,6.5
+Australia,36,AUS,69.0,72.79,3.79,8176.75,True,7.0
+Sweden,752,SWE,71.14,74.97,3.83,7016.57,True,6.59
+San Marino,674,SMR,71.59,75.43,3.84,12.95,False,
+Isle of Man,833,IMN,63.06,67.05,3.99,55.09,False,
+United Kingdom,826,GBR,68.63,72.63,4.0,50121.02,True,7.07
+Uruguay,858,URY,65.57,69.89,4.31,2234.41,True,7.66
+Luxembourg,442,LUX,65.55,70.24,4.7,296.57,False,
+United States of America,840,USA,68.07,72.84,4.78,154202.68,True,7.18
+Latvia,428,LVA,64.57,69.39,4.82,1918.72,True,7.86
+Liberia,430,LBR,37.97,42.85,4.89,918.9,False,
+Angola,24,AGO,35.87,40.81,4.95,4551.87,True,13.39
+Lithuania,440,LTU,66.07,71.22,5.15,2433.0,True,7.57
+Germany,276,DEU,66.81,71.98,5.17,69847.78,True,7.43
+Algeria,12,DZA,42.68,48.03,5.36,9018.43,True,12.08
+Guinea,324,GIN,35.59,41.03,5.44,3013.18,True,13.44
+Iceland,352,ISL,71.03,76.63,5.6,142.67,False,
+Paraguay,600,PRY,58.05,63.65,5.6,1504.34,True,9.11
+Canada,124,CAN,68.21,73.87,5.66,13741.75,True,7.16
+Kazakhstan,398,KAZ,55.59,61.3,5.71,6787.15,True,9.59
+Argentina,32,ARG,61.27,67.03,5.76,17018.04,True,8.49
+Belgium,56,BEL,66.31,72.1,5.8,8617.44,True,7.52
+Monaco,492,MCO,68.0,73.8,5.8,19.67,False,
+Ethiopia,231,ETH,35.51,41.32,5.81,17670.41,True,13.46
+Switzerland,756,CHE,68.91,74.91,5.99,4692.64,True,7.02
+Czechia,203,CZE,64.41,70.6,6.2,8916.71,True,7.89
+Ireland,372,IRL,65.58,71.8,6.22,2912.65,True,7.66
+Uganda,800,UGA,39.71,46.17,6.46,5750.91,True,12.65
+Democratic Republic of the Congo,180,COD,38.22,44.7,6.48,12294.29,True,12.94
+Guinea-Bissau,624,GNB,35.74,42.25,6.52,543.63,False,
+Mozambique,508,MOZ,37.33,43.92,6.59,5910.23,True,13.11
+Falkland Islands (Malvinas),238,FLK,49.48,56.11,6.63,2.19,False,
+Ghana,288,GHA,43.07,49.73,6.66,5080.66,True,12.0
+France,250,FRA,66.38,73.12,6.74,41883.12,True,7.51
+Saint Pierre and Miquelon,666,SPM,62.94,69.71,6.77,4.49,False,
+South Sudan,728,SSD,30.21,37.09,6.89,2493.28,True,14.48
+Austria,40,AUT,64.81,71.79,6.97,6936.45,True,7.81
+Saint Martin (French part),663,MAF,65.12,72.12,7.0,2.98,False,
+Lao People's Democratic Republic,418,LAO,38.94,46.01,7.07,1684.55,True,12.8
+Holy See,336,VAT,65.85,72.93,7.07,0.88,False,
+Philippines,608,PHL,53.58,60.87,7.29,18849.53,True,9.97
+Italy,380,ITA,65.72,73.07,7.34,46391.67,True,7.64
+Chad,148,TCD,35.23,42.69,7.46,2525.45,True,13.51
+Hungary,348,HUN,62.14,69.66,7.52,9337.88,True,8.33
+Greece,300,GRC,66.21,73.75,7.53,7651.08,True,7.54
+Sudan,729,SDN,45.81,53.34,7.54,6189.91,True,11.47
+Togo,768,TGO,41.93,49.51,7.58,1399.6,True,12.22
+Finland,246,FIN,64.2,71.99,7.79,4008.41,True,7.93
+Palau,585,PLW,52.67,60.47,7.79,7.47,False,
+Marshall Islands,584,MHL,52.61,60.42,7.8,13.0,False,
+United States Virgin Islands,850,VIR,59.9,67.85,7.95,27.08,False,
+Kyrgyzstan,417,KGZ,52.06,60.1,8.04,1751.14,True,10.27
+Zimbabwe,716,ZWE,49.42,57.63,8.21,2790.91,True,10.78
+Senegal,686,SEN,36.5,44.81,8.31,2555.37,True,13.27
+Gibraltar,292,GIB,65.1,73.44,8.34,21.66,False,
+Malawi,454,MWI,32.66,41.02,8.36,2950.3,True,14.01
+United Republic of Tanzania,834,TZA,41.03,49.46,8.43,7625.15,True,12.39
+Nepal,524,NPL,37.56,45.99,8.43,8396.6,True,13.06
+Mali,466,MLI,28.73,37.2,8.47,4696.91,True,14.76
+Uzbekistan,860,UZB,53.34,61.9,8.56,6239.9,True,10.02
+Nigeria,566,NGA,35.53,44.19,8.66,37283.01,True,13.45
+Andorra,20,AND,67.16,75.87,8.71,6.0,False,
+Saint Kitts and Nevis,659,KNA,54.78,63.49,8.71,47.23,False,
+Guam,316,GUM,59.57,68.27,8.71,60.78,False,
+Tajikistan,762,TJK,49.35,58.08,8.73,1528.31,True,10.79
+Malta,470,MLT,63.47,72.21,8.73,294.68,False,
+Ukraine,804,UKR,61.17,70.14,8.97,37310.89,True,8.51
+Tokelau,772,TKL,54.69,63.72,9.02,1.59,False,
+Trinidad and Tobago,780,TTO,56.98,66.03,9.05,648.77,False,
+Northern Mariana Islands,580,MNP,58.21,67.28,9.06,7.11,False,
+Georgia,268,GEO,57.71,66.89,9.18,3497.44,True,9.18
+Liechtenstein,438,LIE,65.34,74.57,9.23,13.76,False,
+Bolivia (Plurinational State of),68,BOL,40.7,49.97,9.27,3089.97,True,12.46
+Eritrea,232,ERI,33.29,42.59,9.29,814.87,False,
+Zambia,894,ZMB,46.8,56.1,9.3,2321.3,True,11.28
+Lesotho,426,LSO,44.63,53.93,9.3,579.55,False,
+American Samoa,16,ASM,59.17,68.47,9.31,19.04,False,
+Slovenia,705,SVN,61.82,71.14,9.32,1446.36,True,8.39
+Turkmenistan,795,TKM,48.1,57.45,9.35,1269.18,True,11.03
+Romania,642,ROU,60.51,69.9,9.39,16397.28,True,8.64
+Seychelles,690,SYC,57.82,67.22,9.4,38.28,False,
+Suriname,740,SUR,50.7,60.15,9.45,195.56,False,
+Armenia,51,ARM,54.55,64.14,9.59,1382.89,True,9.79
+Djibouti,262,DJI,40.73,50.34,9.61,62.33,False,
+Bahamas,44,BHS,58.89,68.53,9.64,83.49,False,
+Curaçao,531,CUW,60.29,69.95,9.66,101.77,False,
+Slovakia,703,SVK,60.78,70.47,9.69,3465.75,True,8.59
+Guatemala,320,GTM,37.8,47.62,9.82,3097.2,True,13.02
+Sint Maarten (Dutch part),534,SXM,62.43,72.28,9.84,1.45,False,
+Bulgaria,100,BGR,61.47,71.36,9.89,7248.51,True,8.45
+Bhutan,64,BTN,35.31,45.23,9.92,169.98,False,
+Republic of Moldova,498,MDA,54.03,63.97,9.93,2528.36,True,9.89
+India,356,IND,41.18,51.3,10.12,346278.82,True,12.36
+Madagascar,450,MDG,39.66,49.8,10.14,3956.07,True,12.66
+El Salvador,222,SLV,44.2,54.38,10.18,2183.51,True,11.78
+Burkina Faso,854,BFA,33.03,43.33,10.3,4213.15,True,13.94
+Fiji,242,FJI,51.71,62.1,10.39,309.51,False,
+Benin,204,BEN,35.4,45.95,10.56,2250.48,True,13.48
+Portugal,620,PRT,58.48,69.1,10.62,8418.88,True,9.03
+Kiribati,296,KIR,45.72,56.56,10.84,37.85,False,
+Bermuda,60,BMU,60.36,71.33,10.97,37.21,False,
+Guyana,328,GUY,49.21,60.45,11.24,418.04,False,
+Comoros,174,COM,37.39,48.65,11.25,161.94,False,
+Brazil,76,BRA,48.53,60.01,11.48,53408.55,True,10.95
+Puerto Rico,630,PRI,60.37,72.08,11.71,2229.09,True,8.67
+Gambia,270,GMB,31.16,42.88,11.72,306.74,False,
+Eswatini,748,SWZ,43.44,55.17,11.73,271.65,False,
+Haiti,332,HTI,37.24,48.97,11.73,3265.71,True,13.12
+Aruba,533,ABW,57.99,69.81,11.82,42.74,False,
+Jamaica,388,JAM,56.56,68.41,11.85,1407.21,True,9.4
+Cuba,192,CUB,58.99,70.88,11.89,5924.51,True,8.93
+Niue,570,NIU,54.57,66.51,11.94,4.5,False,
+Spain,724,ESP,61.75,73.81,12.05,28077.05,True,8.4
+Wallis and Futuna Islands,876,WLF,44.13,56.18,12.05,8.54,False,
+Poland,616,POL,58.33,70.4,12.07,24780.16,True,9.06
+Mauritius,480,MUS,51.94,64.03,12.09,525.56,False,
+Afghanistan,4,AFG,28.16,40.52,12.36,7776.18,True,14.87
+Anguilla,660,AIA,55.06,67.44,12.38,5.0,False,
+Panama,591,PAN,55.4,67.79,12.39,860.85,False,
+Sierra Leone,694,SLE,28.93,41.43,12.49,1999.62,True,14.73
+Peru,604,PER,46.03,58.57,12.54,7677.41,True,11.43
+Belarus,112,BLR,58.64,71.22,12.58,7127.59,True,9.0
+Russian Federation,643,RUS,55.47,68.1,12.63,103392.36,True,9.61
+Sri Lanka,144,LKA,53.17,65.84,12.67,7811.05,True,10.05
+Türkiye,792,TUR,47.29,60.01,12.72,21021.14,True,11.19
+French Polynesia,258,PYF,51.86,64.76,12.9,64.34,False,
+Central African Republic,140,CAF,35.44,48.36,12.91,1438.06,True,13.47
+Croatia,191,HRV,58.45,71.37,12.91,3864.99,True,9.04
+Ecuador,218,ECU,48.45,61.43,12.98,3516.79,True,10.96
+Azerbaijan,31,AZE,46.29,59.48,13.19,3131.97,True,11.38
+"Bonaire, Sint Eustatius and Saba",535,BES,61.52,74.73,13.22,7.0,False,
+Morocco,504,MAR,38.77,52.05,13.28,8935.45,True,12.83
+Mauritania,478,MRT,38.38,51.77,13.39,657.72,False,
+Costa Rica,188,CRI,57.46,70.95,13.49,926.76,False,
+Micronesia (Fed. States of),583,FSM,48.36,61.88,13.53,32.11,False,
+"China, Macao SAR",446,MAC,58.33,71.87,13.54,196.65,False,
+Bangladesh,50,BGD,37.41,50.95,13.54,41206.86,True,13.09
+Cayman Islands,136,CYM,54.01,67.55,13.54,7.0,False,
+State of Palestine,275,PSE,45.75,59.39,13.64,944.62,False,
+Chile,152,CHL,53.15,66.82,13.67,6628.58,True,10.06
+Antigua and Barbuda,28,ATG,58.1,71.79,13.69,45.44,False,
+Montenegro,499,MNE,58.03,72.06,14.03,402.51,False,
+Botswana,72,BWA,46.17,60.21,14.04,413.7,False,
+Kosovo (under UNSC res. 1244),412,XKX,43.5,57.54,14.04,778.48,False,
+Samoa,882,WSM,49.2,63.3,14.11,88.28,False,
+Maldives,462,MDV,36.49,50.75,14.26,74.45,False,
+Cabo Verde,132,CPV,44.94,59.4,14.45,184.97,False,
+"China, Taiwan Province of China",158,TWN,56.59,71.16,14.57,7596.53,True,9.39
+Guadeloupe,312,GLP,53.1,67.81,14.71,215.51,False,
+Vanuatu,548,VUT,43.93,58.66,14.74,51.54,False,
+Martinique,474,MTQ,54.95,69.71,14.76,232.07,False,
+Faroe Islands,234,FRO,60.57,75.4,14.83,31.66,False,
+South Africa,710,ZAF,43.11,58.0,14.89,13038.49,True,11.99
+Cyprus,196,CYP,55.83,70.81,14.98,493.87,False,
+British Virgin Islands,92,VGB,53.35,68.41,15.06,7.37,False,
+Thailand,764,THA,45.19,60.37,15.18,20428.4,True,11.59
+"China, Hong Kong SAR",344,HKG,57.82,73.04,15.22,1978.34,True,9.16
+Grenada,308,GRD,52.72,67.95,15.23,77.26,False,
+Nicaragua,558,NIC,40.63,56.12,15.49,1331.44,True,12.47
+Japan,392,JPN,59.25,74.76,15.51,86443.28,True,8.88
+Viet Nam,704,VNM,48.04,63.67,15.63,25100.74,True,11.04
+Saint Barthélemy,652,BLM,53.97,69.69,15.72,2.01,False,
+Mongolia,496,MNG,38.6,54.58,15.98,781.69,False,
+Namibia,516,NAM,41.95,58.04,16.09,514.59,False,
+Congo,178,COG,39.6,55.7,16.1,835.26,False,
+Venezuela (Bolivarian Republic of),862,VEN,51.14,67.27,16.12,5488.85,True,10.45
+Papua New Guinea,598,PNG,39.36,55.53,16.17,1543.43,True,12.72
+Indonesia,360,IDN,40.21,56.45,16.24,68799.02,True,12.55
+Colombia,170,COL,48.28,64.64,16.36,11766.99,True,11.0
+Singapore,702,SGP,54.09,70.57,16.48,1013.31,True,9.88
+Barbados,52,BRB,53.59,70.11,16.52,209.92,False,
+Belize,84,BLZ,49.2,65.76,16.56,69.07,False,
+Gabon,266,GAB,39.27,55.97,16.7,472.84,False,
+Serbia,688,SRB,55.09,71.86,16.78,6009.2,True,9.68
+Brunei Darussalam,96,BRN,50.56,67.41,16.85,48.3,False,
+Cameroon,120,CMR,33.09,50.02,16.93,4330.08,True,13.92
+Turks and Caicos Islands,796,TCA,48.57,65.61,17.04,5.04,False,
+Tonga,776,TON,48.38,65.42,17.04,49.66,False,
+Honduras,340,HND,41.05,58.15,17.1,1558.94,True,12.39
+Myanmar,104,MMR,35.7,52.91,17.21,17737.12,True,13.42
+North Macedonia,807,MKD,50.61,67.87,17.26,1248.68,True,10.55
+China,156,CHN,43.83,61.23,17.4,544044.36,True,11.85
+Qatar,634,QAT,50.76,68.17,17.41,24.28,False,
+Yemen,887,YEM,28.93,46.44,17.51,4616.78,True,14.73
+French Guiana,254,GUF,47.74,65.25,17.51,23.4,False,
+Iran (Islamic Republic of),364,IRN,38.19,55.77,17.58,16510.55,True,12.94
+Dominican Republic,214,DOM,44.06,61.74,17.67,2379.89,True,11.81
+Malaysia,458,MYS,48.49,66.23,17.74,6098.28,True,10.96
+Saint Lucia,662,LCA,48.29,66.2,17.91,92.99,False,
+Côte d'Ivoire,384,CIV,30.83,48.86,18.03,2735.18,True,14.36
+Egypt,818,EGY,33.95,52.48,18.53,21148.16,True,13.76
+Mexico,484,MEX,43.84,62.47,18.64,27587.94,True,11.85
+New Caledonia,540,NCL,45.1,63.75,18.66,63.79,False,
+Saudi Arabia,682,SAU,40.02,58.78,18.77,1703.27,True,12.59
+Tuvalu,798,TUV,40.01,58.77,18.77,4.76,False,
+Réunion,638,REU,47.56,66.7,19.14,249.21,False,
+Saint Vincent and the Grenadines,670,VCT,46.9,66.47,19.57,61.66,False,
+Montserrat,500,MSR,48.59,68.22,19.64,12.94,False,
+Sao Tome and Principe,678,STP,39.13,58.78,19.65,60.87,False,
+Solomon Islands,90,SLB,41.43,61.15,19.72,108.63,False,
+Kuwait,414,KWT,49.74,69.92,20.19,153.96,False,
+Kenya,404,KEN,36.86,57.15,20.29,5769.18,True,13.2
+Pakistan,586,PAK,34.25,55.07,20.82,35849.26,True,13.7
+Bosnia and Herzegovina,70,BIH,47.33,68.57,21.24,2690.41,True,11.18
+Tunisia,788,TUN,38.22,60.31,22.09,3608.99,True,12.94
+Greenland,304,GRL,39.5,61.67,22.17,23.21,False,
+Syrian Arab Republic,760,SYR,42.45,64.84,22.39,3612.08,True,12.12
+United Arab Emirates,784,ARE,42.15,65.81,23.66,74.51,False,
+Jordan,400,JOR,40.87,64.65,23.78,438.8,False,
+Albania,8,ALB,44.52,68.57,24.05,1247.85,True,11.72
+Dominica,212,DMA,44.49,69.41,24.92,50.2,False,
+Oman,512,OMN,29.3,54.45,25.15,456.99,False,
+Mayotte,175,MYT,42.25,67.57,25.32,20.53,False,
+Iraq,368,IRQ,37.4,63.57,26.17,5653.35,True,13.09
+Cook Islands,184,COK,37.95,65.55,27.6,14.69,False,
+Libya,434,LBY,33.11,62.45,29.34,1131.46,True,13.92
+Bahrain,48,BHR,38.6,68.86,30.26,117.26,False,
+Republic of Korea,410,KOR,22.23,65.01,42.79,19757.32,False,
+Dem. People's Republic of Korea,408,PRK,14.2,65.33,51.12,11116.74,False,
