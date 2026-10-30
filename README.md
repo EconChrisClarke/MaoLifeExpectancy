@@ -4,13 +4,13 @@ Charts on life expectancy in China and elsewhere during the Mao era (1950–1976
 
 ## Charts
 
-Click a link to open the interactive chart (hosted preview); the second link is the HTML file in the repo.
+Each chart is a standalone interactive page published with GitHub Pages (served from `docs/` on `main`).
 
-| Chart | View | Source file |
+| Chart | Link | Source file |
 |---|---|---|
-| Over Mao's era, Niger and Rwanda gained barely a year or two of life expectancy | [Open chart](https://htmlpreview.github.io/?https://github.com/EconChrisClarke/MaoLifeExpectancy/blob/main/charts/flat-life-expectancy-mao-era.html) | [`charts/flat-life-expectancy-mao-era.html`](charts/flat-life-expectancy-mao-era.html) |
-| China's life expectancy gains under Mao beat the trend for its starting point | [Open chart](https://htmlpreview.github.io/?https://github.com/EconChrisClarke/MaoLifeExpectancy/blob/main/charts/china-life-expectancy-vs-trend-1950-76.html) | [`charts/china-life-expectancy-vs-trend-1950-76.html`](charts/china-life-expectancy-vs-trend-1950-76.html) |
-| Life expectancy can stall for decades, as it did in Russia and Zimbabwe | [Open chart](https://htmlpreview.github.io/?https://github.com/EconChrisClarke/MaoLifeExpectancy/blob/main/charts/life-expectancy-stalls-russia-zimbabwe.html) | [`charts/life-expectancy-stalls-russia-zimbabwe.html`](charts/life-expectancy-stalls-russia-zimbabwe.html) |
+| Over Mao's era, Niger and Rwanda gained barely a year or two of life expectancy | [https://econchrisclarke.github.io/MaoLifeExpectancy/flat-life-expectancy-mao-era.html](https://econchrisclarke.github.io/MaoLifeExpectancy/flat-life-expectancy-mao-era.html) | [`docs/flat-life-expectancy-mao-era.html`](docs/flat-life-expectancy-mao-era.html) |
+| China's life expectancy gains under Mao beat the trend for its starting point | [https://econchrisclarke.github.io/MaoLifeExpectancy/china-life-expectancy-vs-trend-1950-76.html](https://econchrisclarke.github.io/MaoLifeExpectancy/china-life-expectancy-vs-trend-1950-76.html) | [`docs/china-life-expectancy-vs-trend-1950-76.html`](docs/china-life-expectancy-vs-trend-1950-76.html) |
+| Life expectancy can stall for decades, as it did in Russia and Zimbabwe | [https://econchrisclarke.github.io/MaoLifeExpectancy/life-expectancy-stalls-russia-zimbabwe.html](https://econchrisclarke.github.io/MaoLifeExpectancy/life-expectancy-stalls-russia-zimbabwe.html) | [`docs/life-expectancy-stalls-russia-zimbabwe.html`](docs/life-expectancy-stalls-russia-zimbabwe.html) |
 
 Each page has buttons to download a PNG (Substack 1456×900, vertical 9:16, or square).
 
@@ -27,7 +27,7 @@ pip install -r requirements.txt
 python scripts/build_charts.py
 ```
 
-The script downloads the UN file (~16 MB) to `data/raw/` (git-ignored) on first run, then rewrites the three HTML charts in `charts/` and the CSV in `data/`.
+The script downloads the UN file (~16 MB) to `data/raw/` (git-ignored) on first run, then rewrites the three HTML charts in `docs/` and the CSV in `data/`.
 
 - [`scripts/build_charts.py`](scripts/build_charts.py) – computes every series, the regression and the chart notes from the UN data.
 - [`scripts/chart_template.html`](scripts/chart_template.html) – the shared chart renderer; the script injects each chart's title and `CHART` config (the data) into it.

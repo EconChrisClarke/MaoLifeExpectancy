@@ -9,9 +9,9 @@ birth, both sexes, years).
 
 The raw UN file (~16 MB) is downloaded once to data/raw/ and reused. Outputs:
 
-    charts/flat-life-expectancy-mao-era.html
-    charts/china-life-expectancy-vs-trend-1950-76.html
-    charts/life-expectancy-stalls-russia-zimbabwe.html
+    docs/flat-life-expectancy-mao-era.html
+    docs/china-life-expectancy-vs-trend-1950-76.html
+    docs/life-expectancy-stalls-russia-zimbabwe.html
     data/life-expectancy-gains-1950-1976-un-wpp2024.csv
 
 Each chart is a self-contained HTML page: scripts/chart_template.html holds the
@@ -234,7 +234,7 @@ def main():
         "china-life-expectancy-vs-trend-1950-76.html": chart_scatter(g),
         "life-expectancy-stalls-russia-zimbabwe.html": chart_stalls(d),
     }
-    out = ROOT / "charts"
+    out = ROOT / "docs"
     out.mkdir(exist_ok=True)
     for fname, ch in charts.items():
         (out / fname).write_text(render(ch["headline"], ch), encoding="utf-8")
