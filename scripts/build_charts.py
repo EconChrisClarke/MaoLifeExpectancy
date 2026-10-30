@@ -194,7 +194,7 @@ def chart_scatter(g):
 
 
 def chart_stalls(d):
-    y0, y1 = 1953, 2023
+    y0, y1 = 1950, 2023
     ru = series(d, "Russian Federation", y0, y1, "#C71E1D")
     ru["name"] = "Russia"
     zw = series(d, "Zimbabwe", y0, y1, "#E8A33D")
